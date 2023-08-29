@@ -1,0 +1,15 @@
+<Ui>
+    <Script file="metadata.lua" />
+    <Script file="data.lua" />
+    <Script file="locales.lua" />
+    <Script file="functions.lua" />
+    <Script file="options.lua" />
+    <Script file="core.lua" />
+
+    <Frame name="ravTodo">
+        <Scripts>
+            <OnLoad function="ravTodo_OnLoad" />
+            <OnEvent function="ravTodo_OnEvent" />
+        </Scripts>
+    </Frame>
+</Ui>

@@ -1,0 +1,20 @@
+## Interface: 100105
+## Version: 0.0.1
+
+## Name: Ravenous Todo
+## Title: Ravenous Todo
+## Notes: Keep track of mobs from dungeons, raids, and the world to farm mounts, pets, toys, etc.|n|n|cffbbbbbbSlash command: /todo|r
+## Author: RavenousAddons
+## AddonCompartmentFunc: ravTodo_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: ravTodo_OnAddonCompartmentEnter
+## IconAtlas: Profession
+
+## SavedVariables: RTD_version, RTD_data
+## SavedVariablesPerCharacter: RTD_options
+
+## X-License: Public Domain
+## X-Website: https://github.com/RavenousAddons/ravTodo
+## X-Curse-Project-ID: 827514
+## X-WoWI-ID: 26553
+
+ravTodo.xml
