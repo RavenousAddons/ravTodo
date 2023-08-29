@@ -66,6 +66,7 @@ local function TextColor(text, color)
 end
 
 local function TextIcon(icon, size)
+    if not icon then return "" end
     size = size and size or 16
     return "|T" .. icon .. ":" .. size .. "|t"
 end
@@ -90,17 +91,47 @@ local function HideTooltip()
     GameTooltip:Hide()
 end
 
-local function IsMobDead(mob)
-    if type(mob.quest) == "table" then
-        for _, quest in ipairs(mob.quest) do
-            if not CQL.IsQuestFlaggedCompleted(quest) then
-                return false
+local function GetMobQuests(mob)
+    if mob.quest then
+        if type(mob.quest) == "table" then
+            if factionName == "Alliance" and mob.quest.alliance then
+                return {mob.quest.alliance}
+            elseif factionName == "Horde" and mob.quest.horde then
+                return {mob.name, mob.quest.horde}
+            else
+                return mob.quest
             end
+        else
+            return {mob.quest}
         end
-        return true
-    elseif mob.quest then
-        return CQL.IsQuestFlaggedCompleted(mob.quest)
-    elseif mob.dungeon or mob.raid then
+    end
+    return {}
+end
+
+local function IsMobDead(mob, anyQuest)
+    anyQuest = anyQuest or true
+    local quests = GetMobQuests(mob)
+    if #quests > 0 then
+        -- if any quest completion counts as a success
+        if anyQuest then
+            for _, quest in ipairs(quests) do
+                if CQL.IsQuestFlaggedCompleted(quest) then
+                    return true
+                end
+            end
+            return false
+        -- if all quest completion counts as a success
+        else
+            for _, quest in ipairs(quests) do
+                if not CQL.IsQuestFlaggedCompleted(quest) then
+                    return false
+                end
+            end
+            return true
+        end
+    end
+
+    if mob.dungeon or mob.raid then
         for i = 1, GetNumSavedInstances(), 1 do
             local name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, difficultyName, numEncounters, encounterProgress, extendDisabled = GetSavedInstanceInfo(i)
             if (mob.heroic == nil and mob.mythic == nil) or (mob.heroic and string.match(difficultyName:upper(), "HEROIC")) or (mob.mythic and string.match(difficultyName:upper(), "MYTHIC")) then
@@ -113,6 +144,7 @@ local function IsMobDead(mob)
             end
         end
     end
+
     return false
 end
 
@@ -137,6 +169,9 @@ local function IsItemOwned(item)
 end
 
 local function MobFilter(mob, numItems)
+    if mob.hidden or not mob.loot or #mob.loot == 0 then
+        return false
+    end
     if RTD_options.showDefeated == false and IsMobDead(mob) then
         return false
     end
@@ -147,6 +182,7 @@ local function MobFilter(mob, numItems)
 end
 
 local function ItemFilter(item)
+    item = type(item) == "number" and {item} or item
     if RTD_options.showCollected == false and IsItemOwned(item) then
         return false
     end
@@ -268,15 +304,16 @@ function ns:CacheAndBuild(callback)
     local isBehindQuest, isAvailable
     for _, category in ipairs(categories) do
         for mobID, mob in pairs(category.mobs) do
-            isBehindQuest, isAvailable = false, false
-            mob.quest = mob.quest or (factionName == "Alliance" and (mob.questAlliance or nil) or (mob.questHorde or nil))
-            if type(mob.quest) == "number" then
-                isBehindQuest = true
-                isAvailable = CQL.IsQuestFlaggedCompleted(mob.quest) and false or true
+            -- Build list of available loot from the Mob
+            local items = {}
+            for _, item in ipairs(mob.loot) do
+                item = type(item) == "number" and {item} or item
+                if ItemFilter(item) then
+                    table.insert(items, item)
+                end
             end
-            if mob.hidden ~= true and mob.loot ~= nil and not (isBehindQuest and not isAvailable) then
+            if MobFilter(mob, #items) then
                 for _, item in ipairs(mob.loot) do
-                    item = type(item) == "number" and {item} or item
                     if ItemFilter(item) then
                         table.insert(itemIDs, GetItemID(item))
                     end
@@ -296,12 +333,23 @@ function ns:SetWaypoint(zoneID, coordinates, instanceName)
     local zoneName = C_Map.GetMapInfo(zoneID).name
     local c = {}
     for d in tostring(coordinates):gmatch("[0-9][0-9]") do
-        tinsert(c, d)
+        table.insert(c, d)
     end
     -- Add the waypoint to the map and track it
     C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(zoneID, "0." .. c[1] .. c[2], "0." .. c[3] .. c[4]))
     C_SuperTrack.SetSuperTrackedUserWaypoint(true)
     ns:PrettyPrint(L.AddedMapPin:format("|cffffff00|Hworldmap:" .. zoneID .. ":" .. c[1] .. c[2] .. ":" .. c[3] .. c[4] .. "|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a |cffffff00" .. (instanceName and instanceName .. " - " or "") .. zoneName .. " " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. "|r]|h|r"))
+end
+
+function ns:SendVersionUpdate(type)
+    local currentTime = GetTime()
+    if (RAV_data.updateTimeoutTime) then
+        if (currentTime < RAV_data.updateTimeoutTime) then
+            return
+        end
+    end
+    RAV_data.updateTimeoutTime = currentTime + ns.data.updateTimeout
+    C_ChatInfo.SendAddonMessage(ADDON_NAME, "V:" .. ns.version, type)
 end
 
 ---
@@ -314,6 +362,7 @@ function ns:RefreshCurrencies()
         local quantity = currency.discovered and currency.quantity or 0
         local max = currency.useTotalEarnedForMaxQty and commaValue(currency.maxQuantity - currency.totalEarned + quantity) or commaValue(currency.maxQuantity)
         local add = Currency.add and Currency.add() or 0
+
         Currency:SetText(TextIcon(currency.iconFileID) .. " " .. TextColor(currency.name, Currency.currency.color or "ffffff") .. "  " .. TextColor(commaValue(quantity + add) .. " / " .. (currency.maxQuantity >= currency.quantity and max or "Limitless"), "ffffff"))
     end
 end
@@ -321,6 +370,42 @@ end
 function ns:RefreshWarmode()
     for _, WarmodeLabel in ipairs(ns.Warmode) do
         WarmodeLabel:SetText(TextColor("Warmode is " .. (C_PvP.IsWarModeDesired() and "|cff66ff66" .. _G.VIDEO_OPTIONS_ENABLED .. "|r" or "|cffff6666" .. _G.VIDEO_OPTIONS_DISABLED .. "|r") .. ".", "ffffff"))
+    end
+end
+
+function ns:RefreshMobs()
+    for _, MobLabel in ipairs(ns.Mobs) do
+        local mob = MobLabel.mob
+        local dead = IsMobDead(mob) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull
+        local variant = mob.variant and " (" .. mob.variant .. ")" or ""
+        local instance = TextColor(mob.raid or mob.dungeon or MobLabel.zoneName)
+        local difficulty = mob.mythic and TextColor(" (Mythic)") or mob.heroic and TextColor(" (Heroic)") or ""
+        local drops = mob.vendor and "sells" or "drops"
+        local mobFaction = mob.faction and "|cff" .. (mob.faction == "Alliance" and "0078ff" or "b30000") .. mob.faction .. "|r" or nil
+        local factionOnly = mobFaction and " only for " .. mobFaction or ""
+        local mobControl = mob.control and "|cff" .. (mob.control == "Alliance" and "0078ff" or "b30000") .. mob.control .. "|r" or nil
+        local controlRequired = mobControl and TextColor(string.format(L.ZoneControl, mobControl)) or ""
+
+        MobLabel:SetText(dead .. " " .. TextColor(MobLabel.i .. ". ") .. mob.name .. variant .. TextColor(" in ", "bbbbbb") .. instance .. difficulty .. controlRequired .. factionOnly .. " " .. TextColor(drops .. ":", "bbbbbb"))
+    end
+end
+
+function ns:RefreshItems()
+    for _, ItemLabel in ipairs(ns.Items) do
+        local item = ItemLabel.item
+
+        local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
+
+        local achievement = item.achievement and " from " .. GetAchievementLink(item.achievement) or ""
+        local chance = item.chance and TextColor(" (" .. item.chance .. "%)", "bbbbbb") or ""
+        local itemClass = item.class and "|c" .. select(4, GetClassColor(string.gsub(item.class, "%s+", ""):upper())) .. item.class .. "s|r" or nil
+        local classOnly = item.class and TextColor(L.OnlyFor) .. itemClass or ""
+        local itemFaction = item.faction and "|cff" .. (item.faction == "Alliance" and "0078ff" or "b30000") .. item.faction .. "|r" or nil
+        local factionOnly = itemFaction and TextColor(L.OnlyFor) .. itemFaction or ""
+        local guaranteed = item.guaranteed and TextColor(L.HundredDrop) or ""
+        local owned = IsItemOwned(item) and "  " .. icons.Checkmark or ""
+
+        ItemLabel:SetText("    " .. TextIcon(itemTexture) .. "  " .. itemLink .. guaranteed .. achievement .. factionOnly .. classOnly .. owned .. chance)
     end
 end
 
@@ -454,7 +539,6 @@ function ns:CreatePVP(Parent, Relative)
         Relative.offset = Relative.offset + large
         LittleRelative = Currency
     end
-
     ns:RefreshCurrencies()
 
     return Relative
@@ -470,7 +554,7 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
     for _, item in ipairs(mob.loot) do
         item = type(item) == "number" and {item} or item
         if ItemFilter(item) then
-            tinsert(items, item)
+            table.insert(items, item)
         end
     end
 
@@ -486,23 +570,12 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
         local zoneName = C_Map.GetMapInfo(zoneID).name
         local c = {}
         for d in tostring(coordinates):gmatch("[0-9][0-9]") do
-            tinsert(c, d)
+            table.insert(c, d)
         end
-
-        local dead = IsMobDead(mob) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull
-        local variant = mob.variant and " (" .. mob.variant .. ")" or ""
-        local instance = TextColor(mob.raid or mob.dungeon or zoneName)
-        local difficulty = mob.mythic and TextColor(" (Mythic)") or mob.heroic and TextColor(" (Heroic)") or ""
-        local drops = mob.vendor and "sells" or "drops"
-        local mobFaction = mob.faction and "|cff" .. (mob.faction == "Alliance" and "0078ff" or "b30000") .. mob.faction .. "|r" or nil
-        local factionOnly = mobFaction and TextColor(L.OnlyFor) .. mobFaction or ""
-        local mobControl = mob.control and "|cff" .. (mob.control == "Alliance" and "0078ff" or "b30000") .. mob.control .. "|r" or nil
-        local controlRequired = mobControl and TextColor(string.format(L.ZoneControl, mobControl)) or ""
 
         local Mob = CreateFrame("Button", ADDON_NAME .. "Mob" .. mobID, Parent)
         local MobLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         MobLabel:SetJustifyH("LEFT")
-        MobLabel:SetText(dead .. " " .. TextColor(iterMob .. ". ") .. mob.name .. variant .. TextColor(" in ", "bbbbbb") .. instance .. difficulty .. controlRequired .. " " .. TextColor(drops .. ":", "bbbbbb"))
         MobLabel:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -gigantic-(Relative.offset or 0))
         Mob:SetAllPoints(MobLabel)
         Mob:SetScript("OnEnter", function(self)
@@ -529,6 +602,9 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
             ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon))
         end)
         MobLabel.anchor = Mob
+        MobLabel.mob = mob
+        MobLabel.zoneName = zoneName
+        MobLabel.i = iterMob
         Register("Mobs", MobLabel)
         Relative = Mob
 
@@ -552,14 +628,9 @@ function ns:CreateItem(Parent, Relative, item)
 
     local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
 
-    local guaranteed = item.guaranteed and TextColor(L.HundredDrop) or ""
-    local owned = IsItemOwned(item) and "  " .. icons.Checkmark or ""
-    local chance = item.chance and TextColor(" (" .. item.chance .. "%)", "bbbbbb") or ""
-
     local Item = CreateFrame("Button", ADDON_NAME .. "Item" .. GetItemID(item), Parent)
     local ItemLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     ItemLabel:SetJustifyH("LEFT")
-    ItemLabel:SetText("    " .. TextIcon(itemTexture) .. "  " .. itemLink .. guaranteed .. owned .. chance)
     ItemLabel:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -medium-(Relative.offset or 0))
     -- ItemLabel:SetWidth(Parent:GetWidth())
     Item:SetAllPoints(ItemLabel)
@@ -573,6 +644,8 @@ function ns:CreateItem(Parent, Relative, item)
         ns:PrettyPrint(itemLink)
     end)
     ItemLabel.anchor = Item
+    ItemLabel.item = item
+    ItemLabel.i = iterItem
     Register("Items", ItemLabel)
     Relative = ItemLabel
 
@@ -609,7 +682,7 @@ function ns:BuildWindow()
     Window:SetScript("OnHide", function()
         PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE)
     end)
-    tinsert(UISpecialFrames, Window:GetName())
+    table.insert(UISpecialFrames, Window:GetName())
     ns.Window = Window
 
     -- Make it moveable
@@ -792,5 +865,7 @@ function ns:BuildWindow()
             Relative = ns:CreateMob(Parent, Relative, mobID, category.mobs[mobID])
             local Spacer = CreateSpacer(Parent, Relative)
         end
+        ns:RefreshMobs()
+        ns:RefreshItems()
     end
 end

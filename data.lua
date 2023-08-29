@@ -96,6 +96,66 @@ ns.data = {
     },
     categories = {
         {
+            name = "Weekly",
+            icon = 1391676,
+            notes = {},
+            mobs = {
+                -- Shadowlands
+                [166945] = {name="Nalthor the Rimebinder",locations={[1533]={40075507}},loot={{181819,mount=1409}},dungeon="The Necrotic Wake",mythic=true,},
+                [177269] = {name="So'leah",locations={[1550]={32017602}},loot={{186638,mount=1481}},dungeon="Tazavesh, the Veiled Market",mythic=true,},
+                    -- 3 raid mounts
+                -- Battle for Azeroth
+                [129440] = {name="Lord Harlan Sweete",locations={[895]={84557872}},loot={{159842,mount=995}},dungeon="Freehold",mythic=true,},
+                [136160] = {name="King Dazar",locations={[862]={37513929}},loot={{159921,mount=1040}},dungeon="Kings' Rest",mythic=true,},
+                [133007] = {name="Unbound Abomination",locations={[863]={51196456}},loot={{160829,mount=1053}},dungeon="The Underrot",mythic=true,},
+                [133384] = {name="Merektha",locations={[864]={51832528}},loot={{160832,pet=2186}},dungeon="Temple of Sethraliss",mythic=true,},
+                    -- 1 dungeon mount
+                    -- 3 raid mounts
+                -- Legion
+                [114262] = {name="Attumen the Huntsman",locations={[42]={47007464}},loot={{142236,mount=875}},dungeon="Return to Karazhan",mythic=true,},
+                [114895] = {name="Nightbane",locations={[42]={47007464}},loot={{142552,mount=883}},dungeon="Return to Karazhan",mythic=true,},
+                    -- 5 raid mounts
+                -- Warlords of Draenor
+                    -- 3 raid mounts
+                -- Mists of Pandaria
+                [71865] = {name="Garrosh Hellscream",locations={[390]={73824262}},loot={{104253,mount=559,chance=1.24}},raid="Siege of Orgrimmar",mythic=true,},
+                [69712] = {name="Ji-kun",locations={[504]={63793187}},loot={{95059,mount=543,chance=2.69},{94835,pet=1202}},raid="Throne of Thunder",},
+                [68476] = {name="Horridon",locations={[504]={63793187}},loot={{93666,mount=531,chance=2.69}},raid="Throne of Thunder",},
+                [60410] = {name="Elegon",locations={[379]={59553906}},loot={{87777,mount=478}},raid="Mogu'shan Vaults",heroic=true,},
+                -- Cataclysm
+                [46753] = {name="Al'Akir",locations={[249]={36008400}},loot={{63041,mount=396}},raid="Throne of the Four Winds",},
+                [52530] = {name="Alysrazor",locations={[198]={47007700}},loot={{71665,mount=425}},raid="Firelands",},
+                [52409] = {name="Ragnaros",locations={[198]={47007700}},loot={{69224,mount=415,chance=2.09}},raid="Firelands",},
+                [55294] = {name="Ultraxion",locations={[75]={65005000}},loot={{78919,mount=445}},raid="Dragon Soul",},
+                [56173] = {name="Madness of Deathwing",locations={[75]={65005000}},loot={{77067,mount=442},{77069,mount=444}},raid="Dragon Soul",heroic=true,},
+                -- Wrath of the Lich King
+                [36597] = {name="The Lich King",locations={[118]={54008500}},loot={{50818,mount=363,chance=1.0}},raid="Icecrown Citadel",heroic=true,},
+                [33288] = {name="Yogg-Saron",locations={[120]={41001600}},loot={{45693,mount=304,chance=1.0}},raid="Ulduar",},
+                    -- 6 raid mounts
+                    -- 2 dungeon mounts
+                -- Burning Crusade
+                [16152] = {name="Attumen the Huntsman",locations={[42]={47007700}},loot={{30480,mount=168,chance=1.0},},raid="Karazhan",},
+                [19622] = {name="Kael'thas Sunstrider",locations={[109]={74006500}},loot={{32458,mount=183,chance=1.7}},raid="The Eye",},
+            },
+        },
+        {
+            name = "Daily",
+            icon = 609811,
+            notes = {},
+            mobs = {
+                -- Cataclysm
+                [43873] = {name="Altairus",locations={[249]={77008400}},loot={{63040,mount=395}},dungeon="The Vortex Pinnacle",},
+                    -- 1 dungeon mount
+                -- Burning Crusade
+                [23035] = {name="Anzu",locations={[108]={44606560}},loot={{32768,mount=185}},dungeon="Sethekk Halls",heroic=true,},
+                [24664] = {name="Kael'thas Sunstrider",locations={[122]={60903070}},loot={{35513,mount=213}},dungeon="Magisters' Terrace",heroic=true,},
+                -- Vanilla
+                [52151] = {name="Bloodlord Mandokir",locations={[50]={72003280}},loot={{68823,mount=410}},dungeon="Zul'Gurub",},
+                [52059] = {name="High Priestess Kilnara",locations={[50]={72003280}},loot={{68824,mount=411}},dungeon="Zul'Gurub",},
+                [45412] = {name="Lord Aurius Rivendare",locations={[22]={43501930}},loot={{13335,mount=69}},dungeon="Stratholme",},
+            },
+        },
+        {
             name = "World Bosses",
             icon = 4672498,
             notes = {},
@@ -130,7 +190,7 @@ ns.data = {
                 [179460] = {name="Fallen Charger",locations={[1543]={16274949,27906290,31803850},},loot={{186659,mount=1502,},186660,186661},notes="Yells, runs from its spawn point to Korthia, then despawns",quest=64164,},
                 [179472] = {name="Konthrogz the Obliterator",locations={[1961]={10008000},},loot={{187183,mount=1514,},187375,187378,187384,187397},quest=64246,vignette=4885,},
                 [179684] = {name="Malbog",locations={[1961]={44202920},},loot={{186645,mount=1506,},187377},notes="Talk to Caretaker Kah-Kay in town, then follow footprints",quest=64233,},
-                [179912] = {name="Maelie the Wanderer",locations={[1961]={30005560,33103865,35804650,35856225,38403140,39703490,41103980,41302750,42806040,43203130,49304170,50302290,59801510,61304040,62404970,67962980},},loot={{186643,mount=1511,}},notes="Tinybell asks you to find Maelie the Wanderer, who spawns in a different place each day. Find her each day, use Reassure on her, and get a mount from Tinybell",quest={64292,64298,any=true,},},
+                [179912] = {name="Maelie the Wanderer",locations={[1961]={30005560,33103865,35804650,35856225,38403140,39703490,41103980,41302750,42806040,43203130,49304170,50302290,59801510,61304040,62404970,67962980},},loot={{186643,mount=1511,}},notes="Tinybell asks you to find Maelie the Wanderer, who spawns in a different place each day. Find her each day, use Reassure on her, and get a mount from Tinybell",quest={64292,64298,},},
                 [179985] = {name="Stygian Stonecrusher",locations={[1961]={46507950},},loot={184790,{186479,mount=803,covenant="Venthyr",},{187283,quest=64530,covenant="Venthyr",},187386,{187428,quest=64553,}},quest=64313,vignette=4831,},
                 [180014] = {name="Escaped Wilderling",locations={[1961]={33103930},},loot={{186492,mount=1487,covenant="NightFae",}},quest=64320,vignette=4835,},
                 [180032] = {name="Wild Worldcracker",locations={[1961]={47003560},},loot={{187176,toy=true,},{186483,mount=1493,covenant="Kyrian",},187380,{187426,quest=64552,},{187282,quest=64529,covenant="Kyrian",}},quest=64338,vignette=4838,},
@@ -210,78 +270,6 @@ ns.data = {
                 [32491] = {name="Time-Lost Proto-Drake",locations={[120]={31006940,35607660,51007000,52003400},},loot={{44168,mount=265}},},
             },
         },
-        {
-            name = "Weekly",
-            icon = 1391676,
-            notes = {},
-            mobs = {
-                -- Shadowlands
-                [166945] = {name="Nalthor the Rimebinder",locations={[1533]={40075507}},loot={{181819,mount=1409}},dungeon="The Necrotic Wake",mythic=true,},
-                [177269] = {name="So'leah",locations={[1550]={32017602}},loot={{186638,mount=1481}},dungeon="Tazavesh, the Veiled Market",mythic=true,},
-                    -- 3 raid mounts
-                -- Battle for Azeroth
-                [129440] = {name="Lord Harlan Sweete",locations={[895]={84557872}},loot={{159842,mount=995}},dungeon="Freehold",mythic=true,},
-                [136160] = {name="King Dazar",locations={[862]={37513929}},loot={{159921,mount=1040}},dungeon="Kings' Rest",mythic=true,},
-                [133007] = {name="Unbound Abomination",locations={[863]={51196456}},loot={{160829,mount=1053}},dungeon="The Underrot",mythic=true,},
-                [133384] = {name="Merektha",locations={[864]={51832528}},loot={{160832,pet=2186}},dungeon="Temple of Sethraliss",mythic=true,},
-                    -- 1 dungeon mount
-                    -- 3 raid mounts
-                -- Legion
-                [114262] = {name="Attumen the Huntsman",locations={[42]={47007464}},loot={{142236,mount=875}},dungeon="Return to Karazhan",mythic=true,},
-                [114895] = {name="Nightbane",locations={[42]={47007464}},loot={{142552,mount=883}},dungeon="Return to Karazhan",mythic=true,},
-                    -- 5 raid mounts
-                -- Warlords of Draenor
-                    -- 3 raid mounts
-                -- Mists of Pandaria
-                [71865] = {name="Garrosh Hellscream",locations={[390]={73824262}},loot={{104253,mount=559,chance=1.24}},raid="Siege of Orgrimmar",mythic=true,},
-                [69712] = {name="Ji-kun",locations={[504]={63793187}},loot={{95059,mount=543,chance=2.69},{94835,pet=1202}},raid="Throne of Thunder",},
-                [68476] = {name="Horridon",locations={[504]={63793187}},loot={{93666,mount=531,chance=2.69}},raid="Throne of Thunder",},
-                [60410] = {name="Elegon",locations={[379]={59553906}},loot={{87777,mount=478}},raid="Mogu'shan Vaults",heroic=true,},
-                -- Cataclysm
-                [46753] = {name="Al'Akir",locations={[249]={36008400}},loot={{63041,mount=396}},raid="Throne of the Four Winds",},
-                [52530] = {name="Alysrazor",locations={[198]={47007700}},loot={{71665,mount=425}},raid="Firelands",},
-                [52409] = {name="Ragnaros",locations={[198]={47007700}},loot={{69224,mount=415,chance=2.09}},raid="Firelands",},
-                [55294] = {name="Ultraxion",locations={[75]={65005000}},loot={{78919,mount=445}},raid="Dragon Soul",},
-                [56173] = {name="Madness of Deathwing",locations={[75]={65005000}},loot={{77067,mount=442},{77069,mount=444}},raid="Dragon Soul",heroic=true,},
-                -- Wrath of the Lich King
-                [36597] = {name="The Lich King",locations={[118]={54008500}},loot={{50818,mount=363,chance=1.0}},raid="Icecrown Citadel",heroic=true,},
-                [33288] = {name="Yogg-Saron",locations={[120]={41001600}},loot={{45693,mount=304,chance=1.0}},raid="Ulduar",},
-                    -- 6 raid mounts
-                    -- 2 dungeon mounts
-                -- Burning Crusade
-                [16152] = {name="Attumen the Huntsman",locations={[42]={47007700}},loot={{30480,mount=168,chance=1.0},},raid="Karazhan",},
-                [19622] = {name="Kael'thas Sunstrider",locations={[109]={74006500}},loot={{32458,mount=183,chance=1.7}},raid="The Eye",},
-            },
-        },
-        {
-            name = "Daily",
-            icon = 609811,
-            notes = {},
-            mobs = {
-                -- Cataclysm
-                [43873] = {name="Altairus",locations={[249]={77008400}},loot={{63040,mount=395}},dungeon="The Vortex Pinnacle",},
-                    -- 1 dungeon mount
-                -- Burning Crusade
-                [23035] = {name="Anzu",locations={[108]={44606560}},loot={{32768,mount=185}},dungeon="Sethekk Halls",heroic=true,},
-                [24664] = {name="Kael'thas Sunstrider",locations={[122]={60903070}},loot={{35513,mount=213}},dungeon="Magisters' Terrace",heroic=true,},
-                -- Vanilla
-                [52151] = {name="Bloodlord Mandokir",locations={[50]={72003280}},loot={{68823,mount=410}},dungeon="Zul'Gurub",},
-                [52059] = {name="High Priestess Kilnara",locations={[50]={72003280}},loot={{68824,mount=411}},dungeon="Zul'Gurub",},
-                [45412] = {name="Lord Aurius Rivendare",locations={[22]={43501930}},loot={{13335,mount=69}},dungeon="Stratholme",},
-            },
-        },
-        -- {
-        --     name = "raids",
-        --     icon = 609811,
-        --     notes = {},
-        --     mobs = {},
-        -- },
-        -- {
-        --     name = "Dungeons",
-        --     icon = 609811,
-        --     notes = {},
-        --     mobs = {},
-        -- },
         {
             name = "Vendor",
             icon = 133785,

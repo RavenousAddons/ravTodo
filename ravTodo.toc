@@ -1,5 +1,5 @@
 ## Interface: 100105
-## Version: 0.0.1
+## Version: 0.0.2
 
 ## Name: Ravenous Todo
 ## Title: Ravenous Todo
