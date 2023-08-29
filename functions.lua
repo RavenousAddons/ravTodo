@@ -314,7 +314,7 @@ function ns:RefreshCurrencies()
         local quantity = currency.discovered and currency.quantity or 0
         local max = currency.useTotalEarnedForMaxQty and commaValue(currency.maxQuantity - currency.totalEarned + quantity) or commaValue(currency.maxQuantity)
         local add = Currency.add and Currency.add() or 0
-        Currency:SetText(TextIcon(currency.iconFileID) .. " " .. TextColor(currency.name, Currency.currency.color or "ffffff") .. "  " .. TextColor(commaValue(quantity + add) .. (currency.maxQuantity >= currency.quantity and " / " .. max or ""), "ffffff"))
+        Currency:SetText(TextIcon(currency.iconFileID) .. " " .. TextColor(currency.name, Currency.currency.color or "ffffff") .. "  " .. TextColor(commaValue(quantity + add) .. " / " .. (currency.maxQuantity >= currency.quantity and max or "Limitless"), "ffffff"))
     end
 end
 
@@ -443,24 +443,17 @@ function ns:CreatePVP(Parent, Relative)
     Warmode:SetScript("OnLeave", HideTooltip)
     WarmodeLabel.anchor = Warmode
     Register("Warmode", WarmodeLabel)
-
     ns:RefreshWarmode()
 
-    local Honor = Parent:CreateFontString(ADDON_NAME .. "Honor", "ARTWORK", "GameFontNormal")
-    Honor:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
-    Honor:SetJustifyH("LEFT")
-    Honor.currency = GetCurrencyData(1792)
-    Register("Currencies", Honor)
-    Relative.offset = Relative.offset + large
-    LittleRelative = Honor
-
-    local Conquest = Parent:CreateFontString(ADDON_NAME .. "Conquest", "ARTWORK", "GameFontNormal")
-    Conquest:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
-    Conquest:SetJustifyH("LEFT")
-    Conquest.currency = GetCurrencyData(1602)
-    Register("Currencies", Conquest)
-    Relative.offset = Relative.offset + large
-    LittleRelative = Conquest
+    for _, currency in ipairs(currencies) do
+        local Currency = Parent:CreateFontString(ADDON_NAME .. "Currency-" .. currency.id, "ARTWORK", "GameFontNormal")
+        Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
+        Currency:SetJustifyH("LEFT")
+        Currency.currency = GetCurrencyData(currency.id)
+        Register("Currencies", Currency)
+        Relative.offset = Relative.offset + large
+        LittleRelative = Currency
+    end
 
     ns:RefreshCurrencies()
 

@@ -19,11 +19,17 @@ ns.data = {
         showToys = true,
     },
     currencies = {
-        {
-            id = 1792, -- Honor
+        [1] = {
+            name = "Honor",
+            id = 1792,
         },
-        {
-            id = 1602, -- Conquest
+        [2] = {
+            name = "Conquest",
+            id = 1602,
+        },
+        [3] = {
+            name = "Bloody Tokens",
+            id = 2123,
         },
     },
     expansions = {
