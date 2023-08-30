@@ -12,7 +12,7 @@ end })
 L.Version = "%s is the current version." -- ns.version
 L.Install = "Thanks for installing version |cff%1$s%2$s|r!" -- ns.color, ns.version
 L.Update = "Thanks for updating to version |cff%1$s%2$s|r!" -- ns.color, ns.version
-L.UpdateFound = "Version %s is now available for download. Please update!" -- sentVersion
+L.UpdateFound = "Version %s is now available for download. Please update!" -- sent version
 
 L.AddonCompartmentTooltip1 = "|cff" .. ns.color .. "Left-Click:|r Open Window"
 L.AddonCompartmentTooltip2 = "|cff" .. ns.color .. "Right-Click:|r Settings"
@@ -51,6 +51,18 @@ L.OptionsListPreferences = {
         key = "showToys",
         name = "Show Toys",
         tooltip = "When enabled, toys will be included in the items dropped by mobs."
+    },
+}
+L.OptionsExtra = {
+    [1] = {
+        key = "share",
+        name = "Sharing",
+        tooltip = "Enables sharing of version data and waypoints with group members.",
+    },
+    [2] = {
+        key = "debug",
+        name = "Debugging",
+        tooltip = "Enables messages for debugging.",
     },
 }
 

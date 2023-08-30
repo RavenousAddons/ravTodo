@@ -17,6 +17,7 @@ ns.data = {
         showMounts = true,
         showPets = true,
         showToys = true,
+        share = true,
     },
     currencies = {
         ["Honor"] = 1792,
@@ -86,8 +87,10 @@ ns.data = {
         "00ffff",
     },
     notes = {
+        "This Addon is VERY MUCH a work-in-progress. There are missing bits of data and very likely bugs, so please bear with me as I endeavour to get this filled in and flesh out other features. Thanks for your patience and keep your eyes on Curseforge for updates.",
         ("Check your General Macros for a macro called |cff%1$s%2$s|r, use the Addon compartment button, or type |cff%1$s/%3$s|r to open this main window."):format(ns.color, ns.name, ns.command),
-        "Clicking on a Mob's name will place a Map Pin on their location.",
+        "Clicking a Mob's name will place a Map Pin on their location, and Alt/Ctrl/Shift-Clicking will share the coordinates with your group.",
+        "Clicking an Item will place a link in your chat, and Alt/Ctrl/Shift-Clicking will preview the item in the Dressing Room.",
     },
     categories = {
         {
@@ -294,6 +297,7 @@ ns.data = {
     },
     partyMembers = 0,
     raidMembers = 0,
-    updateFound = false,
-    updateTimeout = 5,
+    updateTimeout = 10,
+    versionUpdateFound = false,
+    versionUpdateTimeout = 30,
 }

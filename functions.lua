@@ -379,26 +379,20 @@ function ns:SetWaypoint(zoneID, coordinates, instanceName, share)
     C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(zoneID, "0." .. c[1] .. c[2], "0." .. c[3] .. c[4]))
     C_SuperTrack.SetSuperTrackedUserWaypoint(true)
 
-    if share then
-        if ns.sendOnCooldown == true then
+    if share and (ns.data.raidMembers > 0 or ns.data.partyMembers > 0) and not IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
+        local now = GetServerTime()
+        if (RTD_data.updateTimeout and RTD_data.updateTimeout > now) then
             ns:PrettyPrint(L.WaitToShare)
             return
         end
-        ns.sendOnCooldown = true
-        C_Timer.After(10, function()
-            ns.sendOnCooldown = false
-        end)
+        RTD_data.updateTimeout = now + ns.data.updateTimeout
 
         local message = (instanceName and instanceName .. ", " or "") .. zoneName .. " @ " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. " " .. C_Map.GetUserWaypointHyperlink()
 
-        if IsInInstance() then
-            SendChatMessage(message, "INSTANCE")
-        elseif IsInRaid() then
+        if ns.data.raidMembers > 0 then
             SendChatMessage(message, "RAID")
-        elseif IsInGroup() then
+        elseif ns.data.partyMembers > 0 then
             SendChatMessage(message, "PARTY")
-        else
-            ns:PrettyPrint(message)
         end
     else
         ns:PrettyPrint(L.AddedMapPin:format("|cffffff00|Hworldmap:" .. zoneID .. ":" .. c[1] .. c[2] .. ":" .. c[3] .. c[4] .. "|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a |cffffff00" .. (instanceName and instanceName .. " - " or "") .. zoneName .. " " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. "|r]|h|r"))
@@ -406,13 +400,11 @@ function ns:SetWaypoint(zoneID, coordinates, instanceName, share)
 end
 
 function ns:SendVersionUpdate(type)
-    local currentTime = GetTime()
-    if (RAV_data.updateTimeoutTime) then
-        if (currentTime < RAV_data.updateTimeoutTime) then
-            return
-        end
+    local now = GetServerTime()
+    if not ns.version:match("-") and (RTD_data.versionUpdateTimeout and RTD_data.versionUpdateTimeout > now) then
+        return
     end
-    RAV_data.updateTimeoutTime = currentTime + ns.data.updateTimeout
+    RTD_data.versionUpdateTimeout = now + ns.data.versionUpdateTimeout
     C_ChatInfo.SendAddonMessage(ADDON_NAME, "V:" .. ns.version, type)
 end
 
@@ -671,7 +663,7 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
         end)
         Mob:SetScript("OnLeave", HideTooltip)
         Mob:SetScript("OnClick", function()
-            if IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown() then
+            if RTD_options.share and (IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown()) then
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon), true)
             else
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon))
@@ -717,7 +709,7 @@ function ns:CreateItem(Parent, Relative, item)
     end)
     Item:SetScript("OnLeave", HideTooltip)
     Item:SetScript("OnClick", function()
-        if IsControlKeyDown() then
+        if IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown() then
             DressUpLink(itemLink)
         else
             ns:PrettyPrint(itemLink)
