@@ -19,18 +19,13 @@ ns.data = {
         showToys = true,
     },
     currencies = {
-        [1] = {
-            name = "Honor",
-            id = 1792,
-        },
-        [2] = {
-            name = "Conquest",
-            id = 1602,
-        },
-        [3] = {
-            name = "Bloody Tokens",
-            id = 2123,
-        },
+        ["Honor"] = 1792,
+        ["Conquest"] = 1602,
+        ["Bloody Tokens"] = 2123,
+        ["Seal of Wartorn Fate"] = 1580,
+        ["Paracausal Flakes"] = 2594,
+        ["Bloody Coin"] = 789,
+        ["Tol Barad Commendation"] = 391,
     },
     expansions = {
         {
@@ -100,6 +95,7 @@ ns.data = {
             icon = 1391676,
             notes = {},
             mobs = {
+                -- Dragonflight
                 -- Shadowlands
                 [166945] = {name="Nalthor the Rimebinder",locations={[1533]={40075507}},loot={{181819,mount=1409}},dungeon="The Necrotic Wake",mythic=true,},
                 [177269] = {name="So'leah",locations={[1550]={32017602}},loot={{186638,mount=1481}},dungeon="Tazavesh, the Veiled Market",mythic=true,},
@@ -108,15 +104,24 @@ ns.data = {
                 [129440] = {name="Lord Harlan Sweete",locations={[895]={84557872}},loot={{159842,mount=995}},dungeon="Freehold",mythic=true,},
                 [136160] = {name="King Dazar",locations={[862]={37513929}},loot={{159921,mount=1040}},dungeon="Kings' Rest",mythic=true,},
                 [133007] = {name="Unbound Abomination",locations={[863]={51196456}},loot={{160829,mount=1053}},dungeon="The Underrot",mythic=true,},
+                [150190] = {name="HK-8 Aerial Oppression unit",locations={[1462]={72883632}},loot={{168826,mount=1252},{169385,pet=2718}},dungeon="Operation: Mechagon",mythic=true,},
+                [150397] = {name="King Mechagon",locations={[1462]={72883632}},loot={{168830,mount=1227}},dungeon="Operation: Mechagon",mythic=true,},
                 [133384] = {name="Merektha",locations={[864]={51832528}},loot={{160832,pet=2186}},dungeon="Temple of Sethraliss",mythic=true,},
-                    -- 1 dungeon mount
-                    -- 3 raid mounts
+                [144838] = {name="High Tinker Mekkatorque",locations={[895]={74332832}},loot={{166518,mount=1217}},raid="Battle of Dazar'alor",normal=true,heroic=true,mythic=true,},
+                [149684] = {name="Lady Jaina Proudmoore",locations={[895]={74332832}},loot={{166518,mount=1217}},raid="Battle of Dazar'alor",lfr=true,},
+                [149685] = {name="Lady Jaina Proudmoore",locations={[895]={74332832}},loot={{166705,mount=1219}},raid="Battle of Dazar'alor",mythic=true,},
+                [158041] = {name="N'Zoth the Corruptor",locations={[1530]={38404481}},loot={{174872,mount=1293}},raid="Ny'alotha, the Waking City",mythic=true,},
                 -- Legion
                 [114262] = {name="Attumen the Huntsman",locations={[42]={47007464}},loot={{142236,mount=875}},dungeon="Return to Karazhan",mythic=true,},
                 [114895] = {name="Nightbane",locations={[42]={47007464}},loot={{142552,mount=883}},dungeon="Return to Karazhan",mythic=true,},
-                    -- 5 raid mounts
+                [105503] = {name="Gul'dan",locations={[1191]={43725722}},loot={{137574,mount=791}},raid="The Nighthold",},
+                [105504] = {name="Gul'dan",locations={[1191]={43725722}},loot={{137575,mount=633}},raid="The Nighthold",mythic=true,},
+                [115767] = {name="Mistress Sassz'ine",locations={[1192]={63952120}},loot={{143643,mount=899}},raid="Tomb of Sargeras",},
+                [126916] = {name="F'harg",locations={[885]={54766234}},loot={{152816,mount=971}},raid="Antorus, the Burning Throne",},
+                [124828] = {name="Argus the Unmaker",locations={[885]={54766234}},loot={{152789,mount=954}},raid="Antorus, the Burning Throne",},
                 -- Warlords of Draenor
-                    -- 3 raid mounts
+                [77325] = {name="Blackhand",locations={[543]={51502706}},loot={{116660,mount=613}},raid="Blackrock Foundry",},
+                [91331] = {name="Archimonde",locations={[577]={46955270}},loot={{123890,mount=751}},raid="Hellfire Citadel",},
                 -- Mists of Pandaria
                 [71865] = {name="Garrosh Hellscream",locations={[390]={73824262}},loot={{104253,mount=559,chance=1.24}},raid="Siege of Orgrimmar",mythic=true,},
                 [69712] = {name="Ji-kun",locations={[504]={63793187}},loot={{95059,mount=543,chance=2.69},{94835,pet=1202}},raid="Throne of Thunder",},
@@ -145,13 +150,13 @@ ns.data = {
             mobs = {
                 -- Cataclysm
                 [43873] = {name="Altairus",locations={[249]={77008400}},loot={{63040,mount=395}},dungeon="The Vortex Pinnacle",},
-                    -- 1 dungeon mount
+                [43214] = {name="Slabhide",locations={[207]={47455218}},loot={{63043,mount=397}},dungeon="The Stonecore",},
+                [52151] = {name="Bloodlord Mandokir",locations={[50]={72003280}},loot={{68823,mount=410}},dungeon="Zul'Gurub",},
+                [52059] = {name="High Priestess Kilnara",locations={[50]={72003280}},loot={{68824,mount=411}},dungeon="Zul'Gurub",},
                 -- Burning Crusade
                 [23035] = {name="Anzu",locations={[108]={44606560}},loot={{32768,mount=185}},dungeon="Sethekk Halls",heroic=true,},
                 [24664] = {name="Kael'thas Sunstrider",locations={[122]={60903070}},loot={{35513,mount=213}},dungeon="Magisters' Terrace",heroic=true,},
                 -- Vanilla
-                [52151] = {name="Bloodlord Mandokir",locations={[50]={72003280}},loot={{68823,mount=410}},dungeon="Zul'Gurub",},
-                [52059] = {name="High Priestess Kilnara",locations={[50]={72003280}},loot={{68824,mount=411}},dungeon="Zul'Gurub",},
                 [45412] = {name="Lord Aurius Rivendare",locations={[22]={43501930}},loot={{13335,mount=69}},dungeon="Stratholme",},
             },
         },
@@ -246,7 +251,7 @@ ns.data = {
                 [50992] = {name="Gorok",locations={[525]={22406620,51205020,57401820,63407960,64605200},},loot={{116674,mount=627,}},},
                 [51015] = {name="Silthide",locations={[535]={51408120,61803120,62004540,67206040,78405500},},loot={{116767,mount=630,}},},
                 [81001] = {name="Nok-Karosh",locations={[525]={13805140},},loot={{116794,mount=657,boe=true,}},tameable=132203,},
-                [83746] = {name="Rukhmar",boss=true,locations={[542]={36003900},},loot={{116771,mount=634,},127775},notes="Weekly; flies",quest=37464,tameable=132192,},
+                [83746] = {name="Rukhmar",boss=true,locations={[542]={36003900},},loot={{116771,mount=634,},127775},quest=37464,tameable=132192,},
                 [90041] = {name="The Last Voidtalon",locations={[525]={47702750,51001990,52301830,53841721},[535]={39705540,46205260,47004800,51904120},[539]={41907570,43207100,46607000,48706990,49607160,50907250},[542]={36501820,47002010,50400610,60801120},[543]={43203420,51603880,54004500,56004000},[550]={40504750,45903140,57302670},},loot={{121815,mount=682,}},notes="Look for the Edge of Reality portals",quest=37864,},
                 [95044] = {name="Terrorfist",locations={[534]={15006300},},loot={{116658,mount=611,},{116669,mount=622,},{116780,mount=643,},128315,128025},quest=39288,},
                 [95053] = {name="Deathtalon",locations={[534]={23004020},},loot={{116658,mount=611,},{116669,mount=622,},{116780,mount=643,},128315,128025},quest=39287,tameable=132192,},
@@ -287,4 +292,8 @@ ns.data = {
             mobs = {},
         },
     },
+    partyMembers = 0,
+    raidMembers = 0,
+    updateFound = false,
+    updateTimeout = 5,
 }

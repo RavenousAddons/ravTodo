@@ -5,7 +5,7 @@ local L = ns.L
 -- local i = 1
 -- while i < 2000 do
 --     local petID, speciesID, owned, customName, level, favorite, isRevoked, speciesName, icon, petType, companionID, tooltip, description, isWild, canBattle, isTradeable, isUnique, obtainable = C_PetJournal.GetPetInfoByIndex(i)
---     if speciesName == "Ji-Kun Hatchling" then
+--     if speciesName:match("8D") then
 --         print(speciesID)
 --     end
 --     i = i + 1
@@ -71,21 +71,11 @@ local function TextIcon(icon, size)
     return "|T" .. icon .. ":" .. size .. "|t"
 end
 
-local icons = {
-    ["Quest"] = TextIcon(132049),
-    ["QuestTurnin"] = TextIcon(132048),
-    ["QuestIncomplete"] = TextIcon(365195),
-    ["Daily"] = TextIcon(368364),
-    ["DailyTurnin"] = TextIcon(368577),
-    ["LegendaryQuest"] = TextIcon(646980),
-    ["LegendaryQuestTurnin"] = TextIcon(646979),
-    ["Achievement"] = TextIcon(235415, 20),
-    ["Checkmark"] = TextIcon(628564),
-    ["Skull"] = TextIcon(137025),
-    ["Vendor"] = TextIcon(136452),
-    ["Dungeon"] = TextIcon(1502543, 20),
-    ["Raid"] = TextIcon(1502548, 20),
-}
+local function Register(Key, Value)
+    if not Key or not Value then return end
+    ns[Key] = ns[Key] or {}
+    table.insert(ns[Key], Value)
+end
 
 local function HideTooltip()
     GameTooltip:Hide()
@@ -108,7 +98,16 @@ local function GetMobQuests(mob)
     return {}
 end
 
-local function IsMobDead(mob, anyQuest)
+local function GetMobDifficulties(mob)
+    local d = {}
+    if mob.lfr then table.insert(d, "Looking for Raid") end
+    if mob.normal then table.insert(d, "Normal") end
+    if mob.heroic then table.insert(d, "Heroic") end
+    if mob.mythic then table.insert(d, "Mythic") end
+    return d
+end
+
+local function IsMobDead(mob, anyQuest, specificDifficulty)
     anyQuest = anyQuest or true
     local quests = GetMobQuests(mob)
     if #quests > 0 then
@@ -132,13 +131,48 @@ local function IsMobDead(mob, anyQuest)
     end
 
     if mob.dungeon or mob.raid then
-        for i = 1, GetNumSavedInstances(), 1 do
-            local name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, difficultyName, numEncounters, encounterProgress, extendDisabled = GetSavedInstanceInfo(i)
-            if (mob.heroic == nil and mob.mythic == nil) or (mob.heroic and string.match(difficultyName:upper(), "HEROIC")) or (mob.mythic and string.match(difficultyName:upper(), "MYTHIC")) then
-                for encounter = 1, numEncounters do
-                    local bossName, fileDataID, isKilled, _ = GetSavedInstanceEncounterInfo(i, encounter)
-                    if bossName == mob.name then
-                        return (locked and isKilled)
+        -- If we only want to check one difficulty
+        if specificDifficulty then
+            for i = 1, GetNumSavedInstances(), 1 do
+                local name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, difficultyName, numEncounters, encounterProgress, extendDisabled = GetSavedInstanceInfo(i)
+                if string.match(difficultyName:upper(), specificDifficulty:upper()) then
+                    for encounter = 1, numEncounters do
+                        local bossName, fileDataID, isKilled, _ = GetSavedInstanceEncounterInfo(i, encounter)
+                        if bossName == mob.name then
+                            return (locked and isKilled)
+                        end
+                    end
+                end
+            end
+        else
+            local difficulties = GetMobDifficulties(mob)
+            -- If specific difficulties are passed, only return true when all are complete
+            if #difficulties > 0 then
+                local kills = 0
+                for _, d in ipairs(difficulties) do
+                    for i = 1, GetNumSavedInstances(), 1 do
+                        local name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, difficultyName, numEncounters, encounterProgress, extendDisabled = GetSavedInstanceInfo(i)
+                        if string.match(difficultyName:upper(), d:upper()) then
+                            for encounter = 1, numEncounters do
+                                local bossName, fileDataID, isKilled, _ = GetSavedInstanceEncounterInfo(i, encounter)
+                                if bossName == mob.name and locked and isKilled then
+                                    kills = kills + 1
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+                return kills >= #difficulties
+            -- Otherwise, any matching mob will be checked
+            else
+                for i = 1, GetNumSavedInstances(), 1 do
+                    local name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, difficultyName, numEncounters, encounterProgress, extendDisabled = GetSavedInstanceInfo(i)
+                    for encounter = 1, numEncounters do
+                        local bossName, fileDataID, isKilled, _ = GetSavedInstanceEncounterInfo(i, encounter)
+                        if bossName == mob.name then
+                            return (locked and isKilled)
+                        end
                     end
                 end
             end
@@ -212,17 +246,22 @@ local function RunsUntil95(chance, bound)
     return bound
 end
 
-local function GetCurrencyData(id)
-    for _, currency in ipairs(currencies) do
-        if id == currency.id then return currency end
-    end
-end
-
-local function Register(Key, Value)
-    if not Key or not Value then return end
-    ns[Key] = ns[Key] or {}
-    table.insert(ns[Key], Value)
-end
+local icons = {
+    ["Infinite"] = TextIcon(237286),
+    ["Quest"] = TextIcon(132049),
+    ["QuestTurnin"] = TextIcon(132048),
+    ["QuestIncomplete"] = TextIcon(365195),
+    ["Daily"] = TextIcon(368364),
+    ["DailyTurnin"] = TextIcon(368577),
+    ["LegendaryQuest"] = TextIcon(646980),
+    ["LegendaryQuestTurnin"] = TextIcon(646979),
+    ["Achievement"] = TextIcon(235415, 20),
+    ["Checkmark"] = TextIcon(628564),
+    ["Skull"] = TextIcon(137025),
+    ["Vendor"] = TextIcon(136452),
+    ["Dungeon"] = TextIcon(1502543, 20),
+    ["Raid"] = TextIcon(1502548, 20),
+}
 
 ---
 -- Global Functions
@@ -313,7 +352,7 @@ function ns:CacheAndBuild(callback)
                 end
             end
             if MobFilter(mob, #items) then
-                for _, item in ipairs(mob.loot) do
+                for _, item in ipairs(items) do
                     if ItemFilter(item) then
                         table.insert(itemIDs, GetItemID(item))
                     end
@@ -328,17 +367,42 @@ end
 -- Waypoints & Sharing
 ---
 
-function ns:SetWaypoint(zoneID, coordinates, instanceName)
+function ns:SetWaypoint(zoneID, coordinates, instanceName, share)
     -- Breakdown the waypoint into segments
     local zoneName = C_Map.GetMapInfo(zoneID).name
     local c = {}
     for d in tostring(coordinates):gmatch("[0-9][0-9]") do
         table.insert(c, d)
     end
+
     -- Add the waypoint to the map and track it
     C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(zoneID, "0." .. c[1] .. c[2], "0." .. c[3] .. c[4]))
     C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-    ns:PrettyPrint(L.AddedMapPin:format("|cffffff00|Hworldmap:" .. zoneID .. ":" .. c[1] .. c[2] .. ":" .. c[3] .. c[4] .. "|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a |cffffff00" .. (instanceName and instanceName .. " - " or "") .. zoneName .. " " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. "|r]|h|r"))
+
+    if share then
+        if ns.sendOnCooldown == true then
+            ns:PrettyPrint(L.WaitToShare)
+            return
+        end
+        ns.sendOnCooldown = true
+        C_Timer.After(10, function()
+            ns.sendOnCooldown = false
+        end)
+
+        local message = (instanceName and instanceName .. ", " or "") .. zoneName .. " @ " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. " " .. C_Map.GetUserWaypointHyperlink()
+
+        if IsInInstance() then
+            SendChatMessage(message, "INSTANCE")
+        elseif IsInRaid() then
+            SendChatMessage(message, "RAID")
+        elseif IsInGroup() then
+            SendChatMessage(message, "PARTY")
+        else
+            ns:PrettyPrint(message)
+        end
+    else
+        ns:PrettyPrint(L.AddedMapPin:format("|cffffff00|Hworldmap:" .. zoneID .. ":" .. c[1] .. c[2] .. ":" .. c[3] .. c[4] .. "|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a |cffffff00" .. (instanceName and instanceName .. " - " or "") .. zoneName .. " " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. "|r]|h|r"))
+    end
 end
 
 function ns:SendVersionUpdate(type)
@@ -358,12 +422,12 @@ end
 
 function ns:RefreshCurrencies()
     for _, Currency in ipairs(ns.Currencies) do
-        local currency = C_CurrencyInfo.GetCurrencyInfo(Currency.currency.id)
+        local currency = C_CurrencyInfo.GetCurrencyInfo(Currency.currency)
         local quantity = currency.discovered and currency.quantity or 0
         local max = currency.useTotalEarnedForMaxQty and commaValue(currency.maxQuantity - currency.totalEarned + quantity) or commaValue(currency.maxQuantity)
         local add = Currency.add and Currency.add() or 0
 
-        Currency:SetText(TextIcon(currency.iconFileID) .. " " .. TextColor(currency.name, Currency.currency.color or "ffffff") .. "  " .. TextColor(commaValue(quantity + add) .. " / " .. (currency.maxQuantity >= currency.quantity and max or "Limitless"), "ffffff"))
+        Currency:SetText(TextIcon(currency.iconFileID) .. " " .. TextColor(currency.name, currency.color or "ffffff") .. "  " .. TextColor(commaValue(quantity + add) .. (currency.maxQuantity >= currency.quantity and " / " .. max or ""), "ffffff"))
     end
 end
 
@@ -376,10 +440,18 @@ end
 function ns:RefreshMobs()
     for _, MobLabel in ipairs(ns.Mobs) do
         local mob = MobLabel.mob
-        local dead = IsMobDead(mob) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull
+        local difficulties = GetMobDifficulties(mob)
+        local difficulty = #difficulties > 0 and TextColor(" (" .. table.concat(difficulties, ", ") .. ")") or ""
+        local dead = ""
+        if #difficulties > 0 then
+            for _, d in ipairs(difficulties) do
+                dead = dead .. (IsMobDead(mob, true, d) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull)
+            end
+        else
+            dead = (IsMobDead(mob) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull)
+        end
         local variant = mob.variant and " (" .. mob.variant .. ")" or ""
         local instance = TextColor(mob.raid or mob.dungeon or MobLabel.zoneName)
-        local difficulty = mob.mythic and TextColor(" (Mythic)") or mob.heroic and TextColor(" (Heroic)") or ""
         local drops = mob.vendor and "sells" or "drops"
         local mobFaction = mob.faction and "|cff" .. (mob.faction == "Alliance" and "0078ff" or "b30000") .. mob.faction .. "|r" or nil
         local factionOnly = mobFaction and " only for " .. mobFaction or ""
@@ -495,7 +567,7 @@ function ns:CreateNotes(Parent, Relative, notes, indent)
 end
 
 function ns:CreatePVP(Parent, Relative)
-    local PVP = Parent:CreateFontString(ADDON_NAME .. "PVP", "ARTWORK", "GameFontNormalLarge")
+    local PVP = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     PVP:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -gigantic-(Relative.offset or 0))
     PVP:SetJustifyH("LEFT")
     PVP:SetText(icons.Skull .. "  " .. TextColor("PVP", "f5c87a"))
@@ -530,16 +602,15 @@ function ns:CreatePVP(Parent, Relative)
     Register("Warmode", WarmodeLabel)
     ns:RefreshWarmode()
 
-    for _, currency in ipairs(currencies) do
-        local Currency = Parent:CreateFontString(ADDON_NAME .. "Currency-" .. currency.id, "ARTWORK", "GameFontNormal")
+    for _, currency in ipairs({"Honor", "Conquest", "Bloody Tokens", "Bloody Coin"}) do
+        local Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
         Currency:SetJustifyH("LEFT")
-        Currency.currency = GetCurrencyData(currency.id)
+        Currency.currency = currencies[currency]
         Register("Currencies", Currency)
         Relative.offset = Relative.offset + large
         LittleRelative = Currency
     end
-    ns:RefreshCurrencies()
 
     return Relative
 end
@@ -577,6 +648,7 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
         local MobLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         MobLabel:SetJustifyH("LEFT")
         MobLabel:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -gigantic-(Relative.offset or 0))
+        MobLabel:SetWidth(Parent:GetWidth())
         Mob:SetAllPoints(MobLabel)
         Mob:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self or UIParent, "ANCHOR_RIGHT", 0, 0)
@@ -599,7 +671,11 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
         end)
         Mob:SetScript("OnLeave", HideTooltip)
         Mob:SetScript("OnClick", function()
-            ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon))
+            if IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown() then
+                ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon), true)
+            else
+                ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon))
+            end
         end)
         MobLabel.anchor = Mob
         MobLabel.mob = mob
@@ -632,7 +708,7 @@ function ns:CreateItem(Parent, Relative, item)
     local ItemLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     ItemLabel:SetJustifyH("LEFT")
     ItemLabel:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -medium-(Relative.offset or 0))
-    -- ItemLabel:SetWidth(Parent:GetWidth())
+    ItemLabel:SetWidth(Parent:GetWidth())
     Item:SetAllPoints(ItemLabel)
     Item:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self or UIParent, "ANCHOR_RIGHT", 0, 0)
@@ -641,7 +717,11 @@ function ns:CreateItem(Parent, Relative, item)
     end)
     Item:SetScript("OnLeave", HideTooltip)
     Item:SetScript("OnClick", function()
-        ns:PrettyPrint(itemLink)
+        if IsControlKeyDown() then
+            DressUpLink(itemLink)
+        else
+            ns:PrettyPrint(itemLink)
+        end
     end)
     ItemLabel.anchor = Item
     ItemLabel.item = item
@@ -666,7 +746,7 @@ function ns:BuildWindow()
 
     -- Setup the window
     local Window = CreateFrame("Frame", ADDON_NAME .. "Window", UIParent, "UIPanelDialogTemplate")
-    Window:SetFrameStrata("MEDIUM")
+    Window:SetFrameStrata("HIGH")
     Window:SetWidth(RTD_options.windowWidth)
     Window:SetHeight(RTD_options.windowHeight)
     Window:SetScale(RTD_options.scale)
@@ -837,6 +917,32 @@ function ns:BuildWindow()
     local PVP = ns:CreatePVP(Parent, Relative)
     Relative = PVP
 
+    -- Currencies
+    local Currencies = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    Currencies:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -gigantic-medium-(Relative.offset or 0))
+    Currencies:SetJustifyH("LEFT")
+    Currencies:SetText(icons.Vendor .. "  " .. TextColor("Currencies"))
+    Relative = Currencies
+    Relative.offset = medium
+    local LittleRelative = Currencies
+
+    for i, currency in ipairs({"Seal of Wartorn Fate", "Paracausal Flakes", "Tol Barad Commendation"}) do
+        local Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        if i > 1 then
+            Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
+        else
+            Currency:SetPoint("LEFT", LittleRelative, "RIGHT", gigantic, 0)
+        end
+        Currency:SetJustifyH("LEFT")
+        Currency.currency = currencies[currency]
+        Register("Currencies", Currency)
+        Relative.offset = Relative.offset + large
+        LittleRelative = Currency
+    end
+
+    -- Spacer
+    local Spacer = CreateSpacer(Parent, LittleRelative, large)
+
     -- Category Content
     local CategoryHeading
     for _, category in ipairs(categories) do
@@ -865,7 +971,10 @@ function ns:BuildWindow()
             Relative = ns:CreateMob(Parent, Relative, mobID, category.mobs[mobID])
             local Spacer = CreateSpacer(Parent, Relative)
         end
-        ns:RefreshMobs()
-        ns:RefreshItems()
     end
+
+    -- Set Text and Tooltips
+    ns:RefreshCurrencies()
+    ns:RefreshMobs()
+    ns:RefreshItems()
 end

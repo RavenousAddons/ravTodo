@@ -20,6 +20,7 @@ L.NoMacroSpace = "Unfortunately, you don't have enough global macro space for th
 
 L.CreateMapPin = "Create Map Pin"
 L.AddedMapPin = "Added a Map Pin %1$s" -- Map Pin Link
+L.WaitToShare = "Please wait a moment before sharing again."
 
 L.HundredDrop = " 100% drop!"
 
