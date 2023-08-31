@@ -1,16 +1,6 @@
 local ADDON_NAME, ns = ...
 local L = ns.L
 
--- Pet ID Finder
--- local i = 1
--- while i < 2000 do
---     local petID, speciesID, owned, customName, level, favorite, isRevoked, speciesName, icon, petType, companionID, tooltip, description, isWild, canBattle, isTradeable, isUnique, obtainable = C_PetJournal.GetPetInfoByIndex(i)
---     if speciesName:match("8D") then
---         print(speciesID)
---     end
---     i = i + 1
--- end
-
 -- Simplified API classes
 local CQL = C_QuestLog
 
@@ -220,6 +210,12 @@ local function ItemFilter(item)
     if RTD_options.showCollected == false and IsItemOwned(item) then
         return false
     end
+    if RTD_options.showIneligible == false and item.class and item.class:upper() ~= className:upper() then
+        return false
+    end
+    if RTD_options.showIneligible == false and item.faction and item.faction:upper() ~= factionName:upper() then
+        return false
+    end
     if item.mount == nil and item.pet == nil and item.toy == nil then
         return false
     end
@@ -279,6 +275,18 @@ function ns:SetDefaultOptions()
             RTD_options[option] = default
         end
     end
+end
+
+function ns:ImportData()
+    local SilverDragonMobs = {}
+    if SilverDragon and RTD_options.useSilverDragon ~= false then
+        for expansion, datasource in pairs(SilverDragon.datasources) do
+            for mobID, mob in pairs(datasource) do
+                SilverDragonMobs[mobID] = mob
+            end
+        end
+    end
+    ns.data.categories[3].mobs = SilverDragonMobs
 end
 
 function ns:PrettyPrint(message)
@@ -433,7 +441,7 @@ function ns:RefreshMobs()
     for _, MobLabel in ipairs(ns.Mobs) do
         local mob = MobLabel.mob
         local difficulties = GetMobDifficulties(mob)
-        local difficulty = #difficulties > 0 and TextColor(" (" .. table.concat(difficulties, ", ") .. ")") or ""
+        local difficulty = #difficulties > 0 and TextColor(" (" .. table.concat(difficulties, ", "):gsub("Looking for Raid", "LFR") .. ")") or ""
         local dead = ""
         if #difficulties > 0 then
             for _, d in ipairs(difficulties) do
@@ -462,7 +470,7 @@ function ns:RefreshItems()
 
         local achievement = item.achievement and " from " .. GetAchievementLink(item.achievement) or ""
         local chance = item.chance and TextColor(" (" .. item.chance .. "%)", "bbbbbb") or ""
-        local itemClass = item.class and "|c" .. select(4, GetClassColor(string.gsub(item.class, "%s+", ""):upper())) .. item.class .. "s|r" or nil
+        local itemClass = item.class and "|c" .. select(4, GetClassColor(string.gsub(item.class, "%s+", ""):upper())) .. item.class .. "|r" or nil
         local classOnly = item.class and TextColor(L.OnlyFor) .. itemClass or ""
         local itemFaction = item.faction and "|cff" .. (item.faction == "Alliance" and "0078ff" or "b30000") .. item.faction .. "|r" or nil
         local factionOnly = itemFaction and TextColor(L.OnlyFor) .. itemFaction or ""

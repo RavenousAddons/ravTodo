@@ -1,14 +1,5 @@
 local _, ns = ...
 
-local SilverDragonMobs = {}
-if SilverDragon then
-    for expansion, datasource in pairs(SilverDragon.datasources) do
-        for mobID, mob in pairs(datasource) do
-            SilverDragonMobs[mobID] = mob
-        end
-    end
-end
-
 ns.data = {
     defaults = {
         locked = false,
@@ -22,11 +13,14 @@ ns.data = {
         minimapButton = true,
         minimapPosition = 0,
         showCollected = false,
-        showDefeated = true,
+        showDefeated = false,
+        showIneligible = false,
         showMounts = true,
         showPets = true,
         showToys = true,
+        useSilverDragon = true,
         share = true,
+        debug = false,
     },
     currencies = {
         ["Honor"] = 1792,
@@ -113,8 +107,10 @@ ns.data = {
                     -- TODO
                 -- Shadowlands
                 [166945] = {name="Nalthor the Rimebinder",locations={[1533]={40075507}},loot={{181819,mount=1409}},dungeon="The Necrotic Wake",mythic=true,},
-                [177269] = {name="So'leah",locations={[1550]={32017602}},loot={{186638,mount=1481}},dungeon="Tazavesh, the Veiled Market",mythic=true,},
-                    -- 3 raid mounts
+                [177269] = {name="So'leah",locations={[1550]={32017602}},loot={{186638,mount=1481}},dungeon="Tazavesh, the Veiled Market",notes="To get there, fly from Oribos.",mythic=true,},
+                [175726] = {name="The Nine",locations={[1543]={69683187}},loot={{186656,mount=1500}},raid="Sanctum of Domination",lfr=true,normal=true,heroic=true,mythic=true,},
+                [175732] = {name="Sylvanas Windrunner",locations={[1543]={69683187}},loot={{186642,mount=1471}},raid="Sanctum of Domination",mythic=true,},
+                [180990] = {name="The Jailer",locations={[1970]={80455329}},loot={{190768,mount=1587}},raid="Sepulcher of the First Ones",mythic=true,},
                 -- Battle for Azeroth
                 [129440] = {name="Lord Harlan Sweete",locations={[895]={84557872}},loot={{159842,mount=995}},dungeon="Freehold",mythic=true,},
                 [136160] = {name="King Dazar",locations={[862]={37513929}},loot={{159921,mount=1040}},dungeon="Kings' Rest",mythic=true,},
@@ -168,18 +164,22 @@ ns.data = {
                 [43214] = {name="Slabhide",locations={[207]={47455218}},loot={{63043,mount=397}},dungeon="The Stonecore",},
                 [52151] = {name="Bloodlord Mandokir",locations={[50]={72003280}},loot={{68823,mount=410}},dungeon="Zul'Gurub",},
                 [52059] = {name="High Priestess Kilnara",locations={[50]={72003280}},loot={{68824,mount=411}},dungeon="Zul'Gurub",},
+                -- Wrath of the Lich King
+                [32273] = {name="Infinite Corruptor",locations={[71]={65884951}},loot={{43951,mount=248,chance=100}},dungeon="The Culling of Stratholme",notes="Boss appears just before the final boss, Mal'Ganis, after completing the instance in 25 minutes or less.",heroic=true,},
+                [26693] = {name="Skadi the Ruthless",locations={[117]={57124633}},loot={{44151,mount=264}},dungeon="Utgarde Pinnacle",notes="Kill adds until you have three harpoons and fire them using the launchers when Skadi is flying in front of them. You can proceed to kill the boss when he is thrown off his drake by three successful hits.",heroic=true,},
                 -- Burning Crusade
                 [23035] = {name="Anzu",locations={[108]={44606560}},loot={{32768,mount=185}},dungeon="Sethekk Halls",heroic=true,},
                 [24664] = {name="Kael'thas Sunstrider",locations={[122]={60903070}},loot={{35513,mount=213}},dungeon="Magisters' Terrace",heroic=true,},
                 -- Vanilla
-                [45412] = {name="Lord Aurius Rivendare",locations={[22]={43501930}},loot={{13335,mount=69}},dungeon="Stratholme",},
+                [45412] = {name="Lord Aurius Rivendare",locations={[22]={43501930}},loot={{13335,mount=69}},dungeon="Stratholme",notes="Can be run multiple times, back-to-back, by resetting the dungeon."},
+                [15264] = {name="Anubisath Sentinel",locations={[81]={24278716}},loot={{21218,mount=117},{21321,mount=118},{21324,mount=119},{21323,mount=120},},raid="Temple of Ahn'Qiraj",notes="Can be farmed by entering the raid, killing the first four Anubisath Sentinels (in the entrance area), and then resetting the raid."},
             },
         },
         {
             name = "World Bosses",
             icon = 4672498,
             notes = {},
-            mobs = SilverDragonMobs,
+            mobs = {},
         },
         {
             name = "Vendor",

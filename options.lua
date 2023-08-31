@@ -26,10 +26,26 @@ end
 function ns:CreateSettingsPanel()
     local category, layout = Settings.RegisterVerticalLayoutCategory(ns.name)
 
-    -- List Preferences
-    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("List Preferences"))
-    for index = 1, #L.OptionsListPreferences do
-        local option = L.OptionsListPreferences[index]
+    -- Mob Preferences
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Mob Preferences:"))
+    for index = 1, #L.OptionsMobPreferences do
+        local option = L.OptionsMobPreferences[index]
+        if option.key ~= "useSilverDragon" or (SilverDragon and option.key == "useSilverDragon") then
+            CreateCheckBox(category, option.key, option.name, option.tooltip)
+        end
+    end
+
+    -- Item Preferences
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Item Preferences:"))
+    for index = 1, #L.OptionsItemPreferences do
+        local option = L.OptionsItemPreferences[index]
+        CreateCheckBox(category, option.key, option.name, option.tooltip)
+    end
+
+    -- Extra Preferences
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Extra Options:"))
+    for index = 1, #L.OptionsExtra do
+        local option = L.OptionsExtra[index]
         CreateCheckBox(category, option.key, option.name, option.tooltip)
     end
 

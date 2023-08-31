@@ -22,20 +22,33 @@ L.CreateMapPin = "Create Map Pin"
 L.AddedMapPin = "Added a Map Pin %1$s" -- Map Pin Link
 L.WaitToShare = "Please wait a moment before sharing again."
 
+L.OnlyFor = " only for "
 L.HundredDrop = " 100% drop!"
 
 L.WarmodeDisableError = "You must be in any rest area to turn off War Mode."
 
-L.OptionsListPreferences = {
+L.OptionsMobPreferences = {
     [1] = {
         key = "showDefeated",
         name = "Show Defeated",
         tooltip = "When enabled, mobs you have already defeated (and their items) will be shown."
     },
     [2] = {
+        key = "useSilverDragon",
+        name = "Show World Bosses",
+        tooltip = "When enabled, pulls in World Boss data from Silver Dragon.",
+    },
+}
+L.OptionsItemPreferences = {
+    [1] = {
         key = "showCollected",
         name = "Show Collected",
         tooltip = "When enabled, items you have already collected (and their bosses) will be shown."
+    },
+    [2] = {
+        key = "showIneligible",
+        name = "Show Ineligible",
+        tooltip = "When enabled, items you are ineligible to collect by being the wrong class or faction (and their bosses) will be shown."
     },
     [3] = {
         key = "showMounts",

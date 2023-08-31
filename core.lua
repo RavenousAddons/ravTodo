@@ -17,6 +17,7 @@ end
 function ravTodo_OnEvent(self, event, arg, ...)
     if event == "PLAYER_LOGIN" then
         ns:SetDefaultOptions()
+        ns:ImportData()
         ns:CreateSettingsPanel()
         ns:EnsureMacro()
         ns:CacheAndBuild(function()
