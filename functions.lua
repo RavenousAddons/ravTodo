@@ -203,7 +203,7 @@ local function IsItemOwned(item)
 end
 
 local function MobFilter(mob, numItems)
-    if mob.hidden or not mob.loot or #mob.loot == 0 then
+    if mob.hidden or not mob.name or not mob.loot or not mob.locations then
         return false
     end
     if RTD_options.showDefeated == false and IsMobDead(mob) then
@@ -345,7 +345,7 @@ function ns:CacheAndBuild(callback)
         for mobID, mob in pairs(category.mobs) do
             -- Build list of available loot from the Mob
             local items = {}
-            for _, item in ipairs(mob.loot) do
+            for _, item in ipairs(mob.loot or {}) do
                 item = type(item) == "number" and {item} or item
                 if ItemFilter(item) then
                     table.insert(items, item)
@@ -614,7 +614,7 @@ end
 function ns:CreateMob(Parent, Relative, mobID, mob)
     -- Build list of available loot from the Mob
     local items = {}
-    for _, item in ipairs(mob.loot) do
+    for _, item in ipairs(mob.loot or {}) do
         item = type(item) == "number" and {item} or item
         if ItemFilter(item) then
             table.insert(items, item)
@@ -738,7 +738,6 @@ function ns:BuildWindow()
 
     -- Setup the window
     local Window = CreateFrame("Frame", ADDON_NAME .. "Window", UIParent, "UIPanelDialogTemplate")
-    Window:SetFrameStrata("HIGH")
     Window:SetWidth(RTD_options.windowWidth)
     Window:SetHeight(RTD_options.windowHeight)
     Window:SetScale(RTD_options.scale)
@@ -853,25 +852,47 @@ function ns:BuildWindow()
 
     -- Create Tabs/Scrollers per category
     for _, category in ipairs(categories) do
-        local Scroller = CreateScroller({
-            label = category.name,
-            parent = Window,
-            width = Window:GetWidth() - 42,
-            height = Window:GetHeight() - Heading:GetHeight() - 6,
-        })
-        Scrollers[category.name] = Scroller
-        local Tab = CreateTab({
-            label = category.name,
-            icon = category.icon,
-            parent = Window,
-            relativeTo = previousTab,
-            relativePoint = "BOTTOMLEFT",
-            x = 0,
-            y = 0,
-        })
-        Tabs[category.name] = Tab
-        previousTab = Tab
+        if next(category.mobs) ~= nil then
+            local Scroller = CreateScroller({
+                label = category.name,
+                parent = Window,
+                width = Window:GetWidth() - 42,
+                height = Window:GetHeight() - Heading:GetHeight() - 6,
+            })
+            Scrollers[category.name] = Scroller
+            local Tab = CreateTab({
+                label = category.name,
+                icon = category.icon,
+                parent = Window,
+                relativeTo = previousTab,
+                relativePoint = "BOTTOMLEFT",
+                x = 0,
+                y = 0,
+            })
+            Tabs[category.name] = Tab
+            previousTab = Tab
+        end
     end
+
+    -- Create the Help Tab/Scroller
+    local Scroller = CreateScroller({
+        label = "Help",
+        parent = Window,
+        width = Window:GetWidth() - 42,
+        height = Window:GetHeight() - Heading:GetHeight() - 6,
+    })
+    Scrollers["Help"] = Scroller
+    local Tab = CreateTab({
+        label = "Usage & Info",
+        icon = 134400,
+        parent = Window,
+        relativeTo = previousTab,
+        relativePoint = "BOTTOMLEFT",
+        x = 0,
+        y = 0,
+    })
+    Tabs["Help"] = Tab
+    local previousTab = Tab
 
     -- Link Tabs and Scrollers
     for title, Tab in pairs(Tabs) do
@@ -892,15 +913,11 @@ function ns:BuildWindow()
     local Relative = Parent
 
     -- General Heading
-    local NoteHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-    NoteHeading:SetJustifyH("LEFT")
-    NoteHeading:SetText(TextColor(TextIcon(ns.icon) .. "  " .. "Welcome!"))
-    NoteHeading:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic-(Relative.offset or 0))
-    Relative = NoteHeading
-
-    -- General Notes
-    local Notes = ns:CreateNotes(Parent, Relative, notes)
-    Relative = Notes
+    local GeneralHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    GeneralHeading:SetJustifyH("LEFT")
+    GeneralHeading:SetText(TextColor(TextIcon(ns.icon) .. "  " .. "Welcome!"))
+    GeneralHeading:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic-(Relative.offset or 0))
+    Relative = GeneralHeading
 
     -- Spacer
     local Spacer = CreateSpacer(Parent, Relative)
@@ -933,37 +950,56 @@ function ns:BuildWindow()
     end
 
     -- Spacer
-    local Spacer = CreateSpacer(Parent, LittleRelative, large)
+    Spacer = CreateSpacer(Parent, LittleRelative, large)
 
     -- Category Content
-    local CategoryHeading
     for _, category in ipairs(categories) do
-        -- Category Content Setup
-        Parent = Scrollers[category.name].Content
-        Relative = Parent
+        if next(category.mobs) ~= nil then
+            -- Category Content Setup
+            Parent = Scrollers[category.name].Content
+            Relative = Parent
 
-        -- Category Heading
-        CategoryHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-        CategoryHeading:SetJustifyH("LEFT")
-        CategoryHeading:SetText(TextIcon(category.icon) .. "  " .. TextColor(category.name))
-        CategoryHeading:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic-(Relative.offset or 0))
-        Relative = CategoryHeading
+            -- Category Heading
+            local CategoryHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+            CategoryHeading:SetJustifyH("LEFT")
+            CategoryHeading:SetText(TextIcon(category.icon) .. "  " .. TextColor(category.name))
+            CategoryHeading:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic-(Relative.offset or 0))
+            Relative = CategoryHeading
 
-        -- Category Notes
-        if (category.notes) then
-            Relative = ns:CreateNotes(Parent, Relative, category.notes)
-        end
+            -- Category Notes
+            if (category.notes) then
+                Relative = ns:CreateNotes(Parent, Relative, category.notes)
+            end
 
-        -- Sort & Iterate Mobs in the Category
-        local mobIDs = {}
-        for mobID in pairs(category.mobs) do table.insert(mobIDs, mobID) end
-        table.sort(mobIDs)
-        iterMob = 0
-        for _, mobID in ipairs(mobIDs) do
-            Relative = ns:CreateMob(Parent, Relative, mobID, category.mobs[mobID])
-            local Spacer = CreateSpacer(Parent, Relative)
+            -- Sort & Iterate Mobs in the Category
+            local mobIDs = {}
+            for mobID in pairs(category.mobs) do table.insert(mobIDs, mobID) end
+            table.sort(mobIDs)
+            iterMob = 0
+            for _, mobID in ipairs(mobIDs) do
+                Relative = ns:CreateMob(Parent, Relative, mobID, category.mobs[mobID])
+                Spacer = CreateSpacer(Parent, Relative)
+            end
         end
     end
+
+    -- Help Content Setup
+    Parent = Scrollers["Help"].Content
+    Relative = Parent
+
+    -- Help Heading
+    local HelpHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    HelpHeading:SetJustifyH("LEFT")
+    HelpHeading:SetText(TextColor(TextIcon(134400) .. "  " .. "Usage & Info"))
+    HelpHeading:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic-(Relative.offset or 0))
+    Relative = HelpHeading
+
+    -- Help Notes
+    local Notes = ns:CreateNotes(Parent, Relative, notes)
+    Relative = Notes
+
+    -- Spacer
+    Spacer = CreateSpacer(Parent, Relative)
 
     -- Set Text and Tooltips
     ns:RefreshCurrencies()

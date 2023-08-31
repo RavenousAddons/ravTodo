@@ -1,5 +1,5 @@
 ## Interface: 100105
-## Version: 0.0.4
+## Version: 0.0.5
 
 ## Name: Ravenous Todo
 ## Title: Ravenous Todo
@@ -8,6 +8,8 @@
 ## AddonCompartmentFunc: ravTodo_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: ravTodo_OnAddonCompartmentEnter
 ## IconAtlas: Profession
+
+## OptionalDeps: SilverDragon
 
 ## SavedVariables: RTD_version, RTD_data
 ## SavedVariablesPerCharacter: RTD_options

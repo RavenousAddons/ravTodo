@@ -65,22 +65,30 @@ function ravTodo_OnEvent(self, event, arg, ...)
         end
     elseif event == "CHAT_MSG_CURRENCY" or event == "CURRENCY_DISPLAY_UPDATE" then
         if ns.Currencies then
-            ns:RefreshCurrencies()
+            C_Timer.After(0, function()
+                ns:RefreshCurrencies()
+            end)
         end
     elseif event == "PLAYER_FLAGS_CHANGED" then
         if ns.Warmode then
-            ns:RefreshWarmode()
+            C_Timer.After(0, function()
+                ns:RefreshWarmode()
+            end)
         end
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local _, subtype = CombatLogGetCurrentEventInfo()
         if subtype == "UNIT_DIED" or subtype == "UNIT_DESTROYED" then
             if ns.Mobs then
-                ns:RefreshMobs()
+                C_Timer.After(3, function()
+                    ns:RefreshMobs()
+                end)
             end
         end
     elseif event == "MOUNT_JOURNAL_SEARCH_UPDATED" or event == "PET_JOURNAL_LIST_UPDATE" or event == "NEW_TOY_ADDED" then
         if ns.Items then
-            ns:RefreshItems()
+            C_Timer.After(3, function()
+                ns:RefreshItems()
+            end)
         end
     end
 end
