@@ -8,6 +8,7 @@ function ravTodo_OnLoad(self)
     self:RegisterEvent("CHAT_MSG_CURRENCY")
     self:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
     self:RegisterEvent("PLAYER_FLAGS_CHANGED")
+    self:RegisterEvent("BOSS_KILL")
     self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self:RegisterEvent("MOUNT_JOURNAL_SEARCH_UPDATED")
     self:RegisterEvent("PET_JOURNAL_LIST_UPDATE")
@@ -76,6 +77,12 @@ function ravTodo_OnEvent(self, event, arg, ...)
                 ns:RefreshWarmode()
             end)
         end
+    elseif event == "BOSS_KILL" then
+        if ns.Mobs then
+            C_Timer.After(3, function()
+                ns:RefreshMobs()
+            end)
+        end
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local _, subtype = CombatLogGetCurrentEventInfo()
         if subtype == "UNIT_DIED" or subtype == "UNIT_DESTROYED" then
@@ -89,6 +96,7 @@ function ravTodo_OnEvent(self, event, arg, ...)
         if ns.Items then
             C_Timer.After(3, function()
                 ns:RefreshItems()
+                ns:RefreshCounts()
             end)
         end
     end

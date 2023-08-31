@@ -94,11 +94,12 @@ local function GetMobDifficulties(mob)
     if mob.normal then table.insert(d, "Normal") end
     if mob.heroic then table.insert(d, "Heroic") end
     if mob.mythic then table.insert(d, "Mythic") end
+    if mob.timewalking then table.insert(d, "Timewalking") end
     return d
 end
 
 local function IsMobDead(mob, anyQuest, specificDifficulty)
-    anyQuest = anyQuest or true
+    anyQuest = anyQuest == nil and true or anyQuest
     local quests = GetMobQuests(mob)
     if #quests > 0 then
         -- if any quest completion counts as a success
@@ -420,6 +421,14 @@ end
 -- Refresher Functions
 ---
 
+function ns:RefreshCounts()
+    ns.MountCount:SetText(TextColor("Character Mounts: " .. ns:GetMountCount()))
+    ns.TotalMountCount:SetText(TextColor("Total Mounts: " .. ns:GetMountCount(false)))
+    ns.PetCount:SetText(TextColor("Unique Pets: " .. ns:GetPetCount()))
+    ns.TotalPetCount:SetText(TextColor("Total Pets: " .. ns:GetPetCount(false)))
+    ns.ToyCount:SetText(TextColor("Toys: " .. ns:GetToyCount()))
+end
+
 function ns:RefreshCurrencies()
     for _, Currency in ipairs(ns.Currencies) do
         local currency = C_CurrencyInfo.GetCurrencyInfo(Currency.currency)
@@ -479,6 +488,35 @@ function ns:RefreshItems()
 
         ItemLabel:SetText("    " .. TextIcon(itemTexture) .. "  " .. itemLink .. guaranteed .. achievement .. factionOnly .. classOnly .. owned .. chance)
     end
+end
+
+function ns:GetMountCount(charOnly)
+    charOnly = charOnly == nil and true or charOnly
+    local count = 0
+    for _, mountID in pairs(C_MountJournal.GetMountIDs()) do
+        local mountName, _, _, _, isUsable, _, isFavorite, isFactionSpecific, mountFaction, hideOnChar, isCollected = C_MountJournal.GetMountInfoByID(mountID)
+        if isCollected and (not charOnly or (charOnly and not hideOnChar and (not isFactionSpecific or ((mountFaction == 0 and factionName == "Horde") or (mountFaction == 1 and factionName == "Alliance"))))) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function ns:GetPetCount(unique)
+    return "work-in-progress"
+    -- unique = unique == nil and true or unique
+    -- local count = 0
+    -- for i = 1, 3000 do
+    --     local numCollected, limit = C_PetJournal.GetNumCollectedInfo(i)
+    --     if numCollected ~= nil and numCollected > 1 then
+    --         count = count + (unique and 1 or numCollected)
+    --     end
+    -- end
+    -- return count
+end
+
+function ns:GetToyCount()
+    return "work-in-progress"
 end
 
 ---
@@ -743,6 +781,7 @@ end
 function ns:BuildWindow()
     local Scrollers = {}
     local Tabs = {}
+    local Tab, Scoller, Parent, Relative, LittleRelative, Spacer, previousTab
 
     -- Setup the window
     local Window = CreateFrame("Frame", ADDON_NAME .. "Window", UIParent, "UIPanelDialogTemplate")
@@ -836,7 +875,7 @@ function ns:BuildWindow()
     -- Icon/Texture to use: 386862
 
     -- Create the General Tab/Scroller
-    local Scroller = CreateScroller({
+    Scroller = CreateScroller({
         label = "General",
         parent = Window,
         width = Window:GetWidth() - 42,
@@ -845,7 +884,7 @@ function ns:BuildWindow()
     })
     Scroller:Show()
     Scrollers["General"] = Scroller
-    local Tab = CreateTab({
+    Tab = CreateTab({
         label = "General",
         icon = ns.icon,
         parent = Window,
@@ -856,19 +895,19 @@ function ns:BuildWindow()
         current = true,
     })
     Tabs["General"] = Tab
-    local previousTab = Tab
+    previousTab = Tab
 
     -- Create Tabs/Scrollers per category
     for _, category in ipairs(categories) do
         if next(category.mobs) ~= nil then
-            local Scroller = CreateScroller({
+            Scroller = CreateScroller({
                 label = category.name,
                 parent = Window,
                 width = Window:GetWidth() - 42,
                 height = Window:GetHeight() - Heading:GetHeight() - 6,
             })
             Scrollers[category.name] = Scroller
-            local Tab = CreateTab({
+            Tab = CreateTab({
                 label = category.name,
                 icon = category.icon,
                 parent = Window,
@@ -883,14 +922,14 @@ function ns:BuildWindow()
     end
 
     -- Create the Help Tab/Scroller
-    local Scroller = CreateScroller({
+    Scroller = CreateScroller({
         label = "Help",
         parent = Window,
         width = Window:GetWidth() - 42,
         height = Window:GetHeight() - Heading:GetHeight() - 6,
     })
     Scrollers["Help"] = Scroller
-    local Tab = CreateTab({
+    Tab = CreateTab({
         label = "Usage & Info",
         icon = 134400,
         parent = Window,
@@ -900,7 +939,7 @@ function ns:BuildWindow()
         y = 0,
     })
     Tabs["Help"] = Tab
-    local previousTab = Tab
+    previousTab = Tab
 
     -- Link Tabs and Scrollers
     for title, Tab in pairs(Tabs) do
@@ -917,8 +956,8 @@ function ns:BuildWindow()
     end
 
     -- General Content Setup
-    local Parent = Scrollers["General"].Content
-    local Relative = Parent
+    Parent = Scrollers["General"].Content
+    Relative = Parent
 
     -- General Heading
     local GeneralHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
@@ -927,8 +966,41 @@ function ns:BuildWindow()
     GeneralHeading:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic-(Relative.offset or 0))
     Relative = GeneralHeading
 
+    -- Collection Counts
+    local MountCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    MountCount:SetJustifyH("LEFT")
+    MountCount:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic*2)
+    Relative = MountCount
+    ns.MountCount = MountCount
+
+    local TotalMountCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    TotalMountCount:SetJustifyH("LEFT")
+    TotalMountCount:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic)
+    Relative = TotalMountCount
+    ns.TotalMountCount = TotalMountCount
+
+    local PetCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    PetCount:SetJustifyH("LEFT")
+    PetCount:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -medium)
+    Relative = PetCount
+    ns.PetCount = PetCount
+
+    local TotalPetCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    TotalPetCount:SetJustifyH("LEFT")
+    TotalPetCount:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -medium)
+    Relative = TotalPetCount
+    ns.TotalPetCount = TotalPetCount
+
+    local ToyCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    ToyCount:SetJustifyH("LEFT")
+    ToyCount:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -medium)
+    Relative = ToyCount
+    ns.ToyCount = ToyCount
+
+    ns:RefreshCounts()
+
     -- Spacer
-    local Spacer = CreateSpacer(Parent, Relative)
+    Spacer = CreateSpacer(Parent, Relative)
 
     -- PVP
     local PVP = ns:CreatePVP(Parent, Relative)
@@ -941,10 +1013,11 @@ function ns:BuildWindow()
     Currencies:SetText(icons.Vendor .. "  " .. TextColor("Currencies"))
     Relative = Currencies
     Relative.offset = medium
-    local LittleRelative = Currencies
+    LittleRelative = Currencies
 
+    local Currency
     for i, currency in ipairs({"Seal of Wartorn Fate", "Paracausal Flakes", "Tol Barad Commendation"}) do
-        local Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         if i > 1 then
             Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
         else
@@ -961,6 +1034,7 @@ function ns:BuildWindow()
     Spacer = CreateSpacer(Parent, LittleRelative, large)
 
     -- Category Content
+    local CategoryHeading, mobIDs
     for _, category in ipairs(categories) do
         if next(category.mobs) ~= nil then
             -- Category Content Setup
@@ -968,7 +1042,7 @@ function ns:BuildWindow()
             Relative = Parent
 
             -- Category Heading
-            local CategoryHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+            CategoryHeading = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
             CategoryHeading:SetJustifyH("LEFT")
             CategoryHeading:SetText(TextIcon(category.icon) .. "  " .. TextColor(category.name))
             CategoryHeading:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic-(Relative.offset or 0))
@@ -980,7 +1054,7 @@ function ns:BuildWindow()
             end
 
             -- Sort & Iterate Mobs in the Category
-            local mobIDs = {}
+            mobIDs = {}
             for mobID in pairs(category.mobs) do table.insert(mobIDs, mobID) end
             table.sort(mobIDs)
             iterMob = 0
@@ -1003,8 +1077,8 @@ function ns:BuildWindow()
     Relative = HelpHeading
 
     -- Help Notes
-    local Notes = ns:CreateNotes(Parent, Relative, notes)
-    Relative = Notes
+    local HelpNotes = ns:CreateNotes(Parent, Relative, notes)
+    Relative = HelpNotes
 
     -- Spacer
     Spacer = CreateSpacer(Parent, Relative)

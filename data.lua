@@ -89,6 +89,29 @@ ns.data = {
         "00ffff",
         "00ffff",
     },
+    difficultyIDs = {
+        ["Looking for Raid"] = {},
+        ["Normal"] = {1, 3, 4, 12, 14, 38, 147, 150},
+        ["Heroic"] = {2, 5, 6, 11, 15, 39, 149},
+        ["Mythic"] = {8, 16, 23, 40},
+        ["Looking for Raid"] = {},
+        ["Timewalking"] = {24, 33},
+    },
+    difficulties = {
+        raid = {
+            ["Normal"] = 14,
+            ["Heroic"] = 15,
+            ["Mythic"] = 16,
+            ["Looking for Raid"] = 17,
+            ["Timewalking"] = 33,
+        },
+        dungeon = {
+            ["Normal"] = 1,
+            ["Heroic"] = 2,
+            ["Mythic"] = 23,
+            ["Timewalking"] = 24,
+        },
+    },
     notes = {
         ("Check your General Macros for a macro called |cff%1$s%2$s|r, use the Addon compartment button, or type |cff%1$s/%3$s|r to open this main window."):format(ns.color, ns.name, ns.command),
         "Clicking a Mob's name will place a Map Pin on their location, and Alt/Ctrl/Shift-Clicking will share the coordinates with your group.",
@@ -131,8 +154,8 @@ ns.data = {
                 [126916] = {name="F'harg",locations={[885]={54766234}},loot={{152816,mount=971}},raid="Antorus, the Burning Throne",},
                 [124828] = {name="Argus the Unmaker",locations={[885]={54766234}},loot={{152789,mount=954}},raid="Antorus, the Burning Throne",},
                 -- Warlords of Draenor
-                [77325] = {name="Blackhand",locations={[543]={51502706}},loot={{116660,mount=613}},raid="Blackrock Foundry",},
-                [91331] = {name="Archimonde",locations={[577]={46955270}},loot={{123890,mount=751}},raid="Hellfire Citadel",},
+                [77325] = {name="Blackhand",locations={[543]={51502706}},loot={{116660,mount=613}},raid="Blackrock Foundry",mythic=true,},
+                [91331] = {name="Archimonde",locations={[577]={46955270}},loot={{123890,mount=751}},raid="Hellfire Citadel",mythic=true,},
                 -- Mists of Pandaria
                 [71865] = {name="Garrosh Hellscream",locations={[390]={73824262}},loot={{104253,mount=559,chance=1.24}},raid="Siege of Orgrimmar",mythic=true,},
                 [69712] = {name="Ji-kun",locations={[504]={63793187}},loot={{95059,mount=543,chance=2.69},{94835,pet=1202}},raid="Throne of Thunder",},
@@ -147,8 +170,13 @@ ns.data = {
                 -- Wrath of the Lich King
                 [36597] = {name="The Lich King",locations={[118]={54008500}},loot={{50818,mount=363,chance=1.0}},raid="Icecrown Citadel",heroic=true,},
                 [33288] = {name="Yogg-Saron",locations={[120]={41001600}},loot={{45693,mount=304,chance=1.0}},raid="Ulduar",},
-                    -- 6 raid mounts
-                    -- 2 dungeon mounts
+                [28859] = {name="Malygos",locations={[114]={27582683}},loot={{43952,mount=246},{43953,mount=247}},raid="The Eye of Eternity",},
+                [28860] = {name="Sartharion",locations={[115]={59985693}},loot={{43954,mount=250},{43986,mount=253},},raid="The Obsidian Sanctum",},
+                [10184] = {name="Onyxia",locations={[70]={52197582}},loot={{49636,mount=349}},raid="Onyxia's Lair",},
+                [31125] = {name="Archavon the Stone Watcher",locations={[123]={49951157}},loot={{43959,mount=286,faction="Alliance",},{44083,mount=287,faction="Horde"}},raid="Vault of Archavon",},
+                [35013] = {name="Koralon the Flame Watcher",locations={[123]={49951157}},loot={{43959,mount=286,faction="Alliance",},{44083,mount=287,faction="Horde"}},raid="Vault of Archavon",},
+                [35014] = {name="Toravon the Ice Watcher",locations={[123]={49951157}},loot={{43959,mount=286,faction="Alliance",},{44083,mount=287,faction="Horde"}},raid="Vault of Archavon",}, -- mobID is 38433, adjusted to place correctly in list
+                [33993] = {name="Emalon the Storm Watcher",locations={[123]={49951157}},loot={{43959,mount=286,faction="Alliance",},{44083,mount=287,faction="Horde"}},raid="Vault of Archavon",},
                 -- Burning Crusade
                 [16152] = {name="Attumen the Huntsman",locations={[42]={47007700}},loot={{30480,mount=168,chance=1.0},},raid="Karazhan",},
                 [19622] = {name="Kael'thas Sunstrider",locations={[109]={74006500}},loot={{32458,mount=183,chance=1.7}},raid="The Eye",},
@@ -166,7 +194,7 @@ ns.data = {
                 [52059] = {name="High Priestess Kilnara",locations={[50]={72003280}},loot={{68824,mount=411}},dungeon="Zul'Gurub",},
                 -- Wrath of the Lich King
                 [32273] = {name="Infinite Corruptor",locations={[71]={65884951}},loot={{43951,mount=248,chance=100}},dungeon="The Culling of Stratholme",notes="Boss appears just before the final boss, Mal'Ganis, after completing the instance in 25 minutes or less.",heroic=true,},
-                [26693] = {name="Skadi the Ruthless",locations={[117]={57124633}},loot={{44151,mount=264}},dungeon="Utgarde Pinnacle",notes="Kill adds until you have three harpoons and fire them using the launchers when Skadi is flying in front of them. You can proceed to kill the boss when he is thrown off his drake by three successful hits.",heroic=true,},
+                [26693] = {name="Skadi the Ruthless",locations={[117]={57124633}},loot={{44151,mount=264}},dungeon="Utgarde Pinnacle",notes="Kill adds until you have three harpoons and fire them using the launchers when Skadi is flying in front of them. You can proceed to kill the boss when he is thrown off his drake by three successful hits.",heroic=true,timewalking=true,},
                 -- Burning Crusade
                 [23035] = {name="Anzu",locations={[108]={44606560}},loot={{32768,mount=185}},dungeon="Sethekk Halls",heroic=true,},
                 [24664] = {name="Kael'thas Sunstrider",locations={[122]={60903070}},loot={{35513,mount=213}},dungeon="Magisters' Terrace",heroic=true,},
