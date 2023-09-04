@@ -9,6 +9,7 @@ function ravTodo_OnLoad(self)
     self:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
     self:RegisterEvent("PLAYER_FLAGS_CHANGED")
     self:RegisterEvent("BOSS_KILL")
+    self:RegisterEvent("ENCOUNTER_END")
     self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self:RegisterEvent("MOUNT_JOURNAL_SEARCH_UPDATED")
     self:RegisterEvent("PET_JOURNAL_LIST_UPDATE")
@@ -77,7 +78,7 @@ function ravTodo_OnEvent(self, event, arg, ...)
                 ns:RefreshWarmode()
             end)
         end
-    elseif event == "BOSS_KILL" then
+    elseif event == "BOSS_KILL" or event == "ENCOUNTER_END" then
         if ns.Mobs then
             C_Timer.After(3, function()
                 ns:RefreshMobs()

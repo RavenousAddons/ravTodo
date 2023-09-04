@@ -7,7 +7,6 @@ local CQL = C_QuestLog
 -- Simplified data lookups
 local defaults = ns.data.defaults
 local categories = ns.data.categories
-local expansions = ns.data.expansions
 local currencies = ns.data.currencies
 local notes = ns.data.notes
 
@@ -77,24 +76,40 @@ local function GetMobQuests(mob)
             if factionName == "Alliance" and mob.quest.alliance then
                 return {mob.quest.alliance}
             elseif factionName == "Horde" and mob.quest.horde then
-                return {mob.name, mob.quest.horde}
-            else
-                return mob.quest
+                return {mob.quest.horde}
             end
-        else
-            return {mob.quest}
+            return mob.quest
         end
+        return {mob.quest}
     end
     return {}
 end
 
 local function GetMobDifficulties(mob)
     local d = {}
-    if mob.lfr then table.insert(d, "Looking for Raid") end
-    if mob.normal then table.insert(d, "Normal") end
-    if mob.heroic then table.insert(d, "Heroic") end
-    if mob.mythic then table.insert(d, "Mythic") end
-    if mob.timewalking then table.insert(d, "Timewalking") end
+    if mob.lfr then
+        table.insert(d, "Looking for Raid")
+    end
+    if mob.normal then
+        if type(mob.normal) == "number" then
+            table.insert(d, mob.normal .. " Player")
+        else
+            table.insert(d, "Normal")
+        end
+    end
+    if mob.heroic then
+        if type(mob.heroic) == "number" then
+            table.insert(d, mob.heroic .. " Player (Heroic)")
+        else
+            table.insert(d, "Heroic")
+        end
+    end
+    if mob.mythic then
+        table.insert(d, "Mythic")
+    end
+    if mob.timewalking then
+        table.insert(d, "Timewalking")
+    end
     return d
 end
 
@@ -102,18 +117,18 @@ local function IsMobDead(mob, anyQuest, specificDifficulty)
     anyQuest = anyQuest == nil and true or anyQuest
     local quests = GetMobQuests(mob)
     if #quests > 0 then
-        -- if any quest completion counts as a success
+        -- if ANY quest completion counts as a success
         if anyQuest then
             for _, quest in ipairs(quests) do
-                if CQL.IsQuestFlaggedCompleted(quest) then
+                if type(quest) == "number" and CQL.IsQuestFlaggedCompleted(quest) then
                     return true
                 end
             end
             return false
-        -- if all quest completion counts as a success
+        -- if ALL quest completion counts as a success
         else
             for _, quest in ipairs(quests) do
-                if not CQL.IsQuestFlaggedCompleted(quest) then
+                if type(quest) == "number" and not CQL.IsQuestFlaggedCompleted(quest) then
                     return false
                 end
             end
@@ -122,6 +137,7 @@ local function IsMobDead(mob, anyQuest, specificDifficulty)
     end
 
     if mob.dungeon or mob.raid then
+        local size = mob.size and mob.size or mob.raid and 10 or mob.dungeon and 5
         -- If we only want to check one difficulty
         if specificDifficulty then
             for i = 1, GetNumSavedInstances(), 1 do
@@ -159,10 +175,12 @@ local function IsMobDead(mob, anyQuest, specificDifficulty)
             else
                 for i = 1, GetNumSavedInstances(), 1 do
                     local name, id, reset, difficulty, locked, extended, instanceIDMostSig, isRaid, maxPlayers, difficultyName, numEncounters, encounterProgress, extendDisabled = GetSavedInstanceInfo(i)
-                    for encounter = 1, numEncounters do
-                        local bossName, fileDataID, isKilled, _ = GetSavedInstanceEncounterInfo(i, encounter)
-                        if bossName == mob.name then
-                            return (locked and isKilled)
+                    if not mob.difficulties or (mob.difficulties and contains(mob.difficulties, difficulty)) then
+                        for encounter = 1, numEncounters do
+                            local bossName, fileDataID, isKilled, _ = GetSavedInstanceEncounterInfo(i, encounter)
+                            if bossName == mob.name then
+                                return (locked and isKilled)
+                            end
                         end
                     end
                 end
@@ -185,7 +203,7 @@ local function IsItemOwned(item)
         return C_PetJournal.GetNumCollectedInfo(item.pet) > 0
     elseif item.toy then
         return PlayerHasToy(GetItemID(item))
-    elseif item.quest then
+    elseif item.quest and type(item.quest) == "number"  then
         return CQL.IsQuestFlaggedCompleted(item.quest)
     elseif item.achievement then
         return select(4, GetAchievementInfo(item.achievement))
@@ -200,6 +218,12 @@ local function MobFilter(mob, numItems)
     if RTD_options.showDefeated == false and IsMobDead(mob) then
         return false
     end
+    if RTD_options.showIneligible == false and mob.class and mob.class:upper() ~= className:upper() then
+        return false
+    end
+    if RTD_options.showIneligible == false and mob.faction and mob.faction:upper() ~= factionName:upper() then
+        return false
+    end
     if numItems == 0 then
         return false
     end
@@ -208,6 +232,11 @@ end
 
 local function ItemFilter(item)
     item = type(item) == "number" and {item} or item
+    local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
+
+    if not itemLink then
+        return false
+    end
     if RTD_options.showCollected == false and IsItemOwned(item) then
         return false
     end
@@ -449,8 +478,9 @@ end
 function ns:RefreshMobs()
     for _, MobLabel in ipairs(ns.Mobs) do
         local mob = MobLabel.mob
+        local size = mob.size and mob.size or ""
         local difficulties = GetMobDifficulties(mob)
-        local difficulty = #difficulties > 0 and TextColor(" (" .. table.concat(difficulties, ", "):gsub("Looking for Raid", "LFR") .. ")") or ""
+        local difficulty = #difficulties > 0 and TextColor(" (" .. table.concat(difficulties, ", "):gsub(" Player", ""):gsub("%(Heroic%)", "Heroic"):gsub("Looking for Raid", "LFR") .. ")") or ""
         local dead = ""
         if #difficulties > 0 then
             for _, d in ipairs(difficulties) do
@@ -462,12 +492,14 @@ function ns:RefreshMobs()
         local variant = mob.variant and " (" .. mob.variant .. ")" or ""
         local instance = TextColor(mob.raid or mob.dungeon or MobLabel.zoneName)
         local drops = mob.vendor and "sells" or "drops"
+        local mobClass = mob.class and "|c" .. select(4, GetClassColor(string.gsub(mob.class, "%s+", ""):upper())) .. mob.class .. "|r" or nil
+        local classOnly = mob.class and TextColor(L.OnlyFor, "bbbbbb") .. mobClass or ""
         local mobFaction = mob.faction and "|cff" .. (mob.faction == "Alliance" and "0078ff" or "b30000") .. mob.faction .. "|r" or nil
-        local factionOnly = mobFaction and " only for " .. mobFaction or ""
+        local factionOnly = mobFaction and TextColor(L.OnlyFor, "bbbbbb") .. mobFaction or ""
         local mobControl = mob.control and "|cff" .. (mob.control == "Alliance" and "0078ff" or "b30000") .. mob.control .. "|r" or nil
         local controlRequired = mobControl and TextColor(string.format(L.ZoneControl, mobControl)) or ""
 
-        MobLabel:SetText(dead .. " " .. TextColor(MobLabel.i .. ". ") .. mob.name .. variant .. TextColor(" in ", "bbbbbb") .. instance .. difficulty .. controlRequired .. factionOnly .. " " .. TextColor(drops .. ":", "bbbbbb"))
+        MobLabel:SetText(dead .. " " .. TextColor(MobLabel.i .. ". ") .. mob.name .. variant .. TextColor(" in ", "bbbbbb") .. instance .. difficulty .. controlRequired .. factionOnly .. classOnly .. " " .. TextColor(drops .. ":", "bbbbbb"))
     end
 end
 
@@ -480,9 +512,9 @@ function ns:RefreshItems()
         local achievement = item.achievement and " from " .. GetAchievementLink(item.achievement) or ""
         local chance = item.chance and TextColor(" (" .. item.chance .. "%)", "bbbbbb") or ""
         local itemClass = item.class and "|c" .. select(4, GetClassColor(string.gsub(item.class, "%s+", ""):upper())) .. item.class .. "|r" or nil
-        local classOnly = item.class and TextColor(L.OnlyFor) .. itemClass or ""
+        local classOnly = item.class and TextColor(L.OnlyFor, "bbbbbb") .. itemClass or ""
         local itemFaction = item.faction and "|cff" .. (item.faction == "Alliance" and "0078ff" or "b30000") .. item.faction .. "|r" or nil
-        local factionOnly = itemFaction and TextColor(L.OnlyFor) .. itemFaction or ""
+        local factionOnly = itemFaction and TextColor(L.OnlyFor, "bbbbbb") .. itemFaction or ""
         local guaranteed = item.guaranteed and TextColor(L.HundredDrop) or ""
         local owned = IsItemOwned(item) and "  " .. icons.Checkmark or ""
 
@@ -742,6 +774,10 @@ function ns:CreateItem(Parent, Relative, item)
 
     local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
 
+    if not itemLink then
+        return
+    end
+
     local Item = CreateFrame("Button", ADDON_NAME .. "Item" .. GetItemID(item), Parent)
     local ItemLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     ItemLabel:SetJustifyH("LEFT")
@@ -758,6 +794,7 @@ function ns:CreateItem(Parent, Relative, item)
         if IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown() then
             DressUpLink(itemLink)
         else
+            -- TODO refactor to open Journal instead of just printing
             ns:PrettyPrint(itemLink)
         end
     end)
@@ -1016,7 +1053,7 @@ function ns:BuildWindow()
     LittleRelative = Currencies
 
     local Currency
-    for i, currency in ipairs({"Seal of Wartorn Fate", "Paracausal Flakes", "Tol Barad Commendation"}) do
+    for i, currency in ipairs({"Seal of Wartorn Fate", "Paracausal Flakes", "Darkmoon Prize Ticket", "Tol Barad Commendation"}) do
         Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         if i > 1 then
             Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)

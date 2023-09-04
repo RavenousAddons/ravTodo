@@ -30,53 +30,7 @@ ns.data = {
         ["Paracausal Flakes"] = 2594,
         ["Bloody Coin"] = 789,
         ["Tol Barad Commendation"] = 391,
-    },
-    expansions = {
-        {
-            name = "Dragonflight",
-            color = "d12a60",
-        },
-        {
-            name = "Shadowlands",
-            color = "e5cc80",
-        },
-        {
-            name = "BattleForAzeroth",
-            title = "Battle for Azeroth",
-            color = "5ca0bf",
-        },
-        {
-            name = "Legion",
-            color = "aece49",
-        },
-        {
-            name = "Warlords",
-            title = "Warlord of Draenor",
-            color = "dba53a",
-        },
-        {
-            name = "Mists",
-            title = "Mists of Pandaria",
-            color = "72aa98",
-        },
-        {
-            name = "Cataclysm",
-            color = "e8660a",
-        },
-        {
-            name = "Wrath",
-            title = "Wrath of the Lich King",
-            color = "afcae6",
-        },
-        {
-            name = "BurningCrusade",
-            title = "Burning Crusade",
-            color = "accda8",
-        },
-        {
-            name = "Vanilla",
-            color = "fff275",
-        },
+        ["Darkmoon Prize Ticket"] = 515,
     },
     reputationColors = {
         "cc2222",
@@ -116,7 +70,8 @@ ns.data = {
         ("Check your General Macros for a macro called |cff%1$s%2$s|r, use the Addon compartment button, or type |cff%1$s/%3$s|r to open this main window."):format(ns.color, ns.name, ns.command),
         "Clicking a Mob's name will place a Map Pin on their location, and Alt/Ctrl/Shift-Clicking will share the coordinates with your group.",
         "Clicking an Item will place a link in your chat, and Alt/Ctrl/Shift-Clicking will preview the item in the Dressing Room.",
-        "Ravenous Todo is very much a work-in-progress; although, things are progressing quickly. 0.0.5 changes how world boss data is sourced; it now comes from another Addon called SilverDragon, so if you have that AddOn enabled, you'll see the World Boss tab and relevant data there.",
+        "Notes on development:",
+        "Version 0.0.8 brings some bugfixes and addresses some incorrect data entry on my part.",
         "I'm still working on fleshing out the Weekly/Daily data manually. My first priority is to track all mount farms and then will pick up pets and toys. Let me know if I'm missing any!",
         "Thanks for your patience as I continue development, and keep your eyes on Curseforge for updates.",
     },
@@ -168,7 +123,7 @@ ns.data = {
                 [55294] = {name="Ultraxion",locations={[75]={65005000}},loot={{78919,mount=445}},raid="Dragon Soul",},
                 [56173] = {name="Madness of Deathwing",locations={[75]={65005000}},loot={{77067,mount=442},{77069,mount=444}},raid="Dragon Soul",heroic=true,},
                 -- Wrath of the Lich King
-                [36597] = {name="The Lich King",locations={[118]={54008500}},loot={{50818,mount=363,chance=1.0}},raid="Icecrown Citadel",heroic=true,},
+                [36597] = {name="The Lich King",locations={[118]={54008500}},loot={{50818,mount=363,chance=1.0}},raid="Icecrown Citadel",heroic=25,},
                 [33288] = {name="Yogg-Saron",locations={[120]={41001600}},loot={{45693,mount=304,chance=1.0}},raid="Ulduar",},
                 [28859] = {name="Malygos",locations={[114]={27582683}},loot={{43952,mount=246},{43953,mount=247}},raid="The Eye of Eternity",},
                 [28860] = {name="Sartharion",locations={[115]={59985693}},loot={{43954,mount=250},{43986,mount=253},},raid="The Obsidian Sanctum",},
