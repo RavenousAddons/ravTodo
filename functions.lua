@@ -234,7 +234,7 @@ local function ItemFilter(item)
     item = type(item) == "number" and {item} or item
     local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
 
-    if not itemLink then
+    if type(itemLink) ~= "string" then
         return false
     end
     if RTD_options.showCollected == false and IsItemOwned(item) then
@@ -773,10 +773,6 @@ function ns:CreateItem(Parent, Relative, item)
     item = type(item) == "number" and {item} or item
 
     local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
-
-    if not itemLink then
-        return
-    end
 
     local Item = CreateFrame("Button", ADDON_NAME .. "Item" .. GetItemID(item), Parent)
     local ItemLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
