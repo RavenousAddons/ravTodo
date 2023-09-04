@@ -93,7 +93,7 @@ ns.data = {
                 [129440] = {name="Lord Harlan Sweete",locations={[895]={84557872}},loot={{159842,mount=995}},dungeon="Freehold",mythic=true,},
                 [136160] = {name="King Dazar",locations={[862]={37513929}},loot={{159921,mount=1040}},dungeon="Kings' Rest",mythic=true,},
                 [133007] = {name="Unbound Abomination",locations={[863]={51196456}},loot={{160829,mount=1053}},dungeon="The Underrot",mythic=true,},
-                [150190] = {name="HK-8 Aerial Oppression unit",locations={[1462]={72883632}},loot={{168826,mount=1252},{169385,pet=2718}},dungeon="Operation: Mechagon",mythic=true,},
+                [150190] = {name="HK-8 Aerial Oppression Unit",locations={[1462]={72883632}},loot={{168826,mount=1252},{169385,pet=2718}},dungeon="Operation: Mechagon",mythic=true,},
                 [150397] = {name="King Mechagon",locations={[1462]={72883632}},loot={{168830,mount=1227}},dungeon="Operation: Mechagon",mythic=true,},
                 [133384] = {name="Merektha",locations={[864]={51832528}},loot={{160832,pet=2186}},dungeon="Temple of Sethraliss",mythic=true,},
                 [144838] = {name="High Tinker Mekkatorque",locations={[895]={74332832}},loot={{166518,mount=1217}},raid="Battle of Dazar'alor",normal=true,heroic=true,mythic=true,},

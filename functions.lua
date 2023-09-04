@@ -505,20 +505,23 @@ end
 
 function ns:RefreshItems()
     for _, ItemLabel in ipairs(ns.Items) do
-        local item = ItemLabel.item
+        local item = type(ItemLabel.item) == "number" and {ItemLabel.item} or ItemLabel.item
 
         local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
 
-        local achievement = item.achievement and " from " .. GetAchievementLink(item.achievement) or ""
-        local chance = item.chance and TextColor(" (" .. item.chance .. "%)", "bbbbbb") or ""
-        local itemClass = item.class and "|c" .. select(4, GetClassColor(string.gsub(item.class, "%s+", ""):upper())) .. item.class .. "|r" or nil
-        local classOnly = item.class and TextColor(L.OnlyFor, "bbbbbb") .. itemClass or ""
-        local itemFaction = item.faction and "|cff" .. (item.faction == "Alliance" and "0078ff" or "b30000") .. item.faction .. "|r" or nil
-        local factionOnly = itemFaction and TextColor(L.OnlyFor, "bbbbbb") .. itemFaction or ""
-        local guaranteed = item.guaranteed and TextColor(L.HundredDrop) or ""
-        local owned = IsItemOwned(item) and "  " .. icons.Checkmark or ""
+        if type(itemLink) == "string" then
+            local achievement = item.achievement and " from " .. GetAchievementLink(item.achievement) or ""
+            local chance = item.chance and TextColor(" (" .. item.chance .. "%)", "bbbbbb") or ""
+            local itemClass = item.class and "|c" .. select(4, GetClassColor(string.gsub(item.class, "%s+", ""):upper())) .. item.class .. "|r" or nil
+            local classOnly = item.class and TextColor(L.OnlyFor, "bbbbbb") .. itemClass or ""
+            local itemFaction = item.faction and "|cff" .. (item.faction == "Alliance" and "0078ff" or "b30000") .. item.faction .. "|r" or nil
+            local factionOnly = itemFaction and TextColor(L.OnlyFor, "bbbbbb") .. itemFaction or ""
+            local guaranteed = item.guaranteed and TextColor(L.HundredDrop) or ""
+            local owned = IsItemOwned(item) and "  " .. icons.Checkmark or ""
 
-        ItemLabel:SetText("    " .. TextIcon(itemTexture) .. "  " .. itemLink .. guaranteed .. achievement .. factionOnly .. classOnly .. owned .. chance)
+            ItemLabel:SetText("    " .. TextIcon(itemTexture) .. "  " .. itemLink .. guaranteed .. achievement .. factionOnly .. classOnly .. owned .. chance)
+        end
+
     end
 end
 
