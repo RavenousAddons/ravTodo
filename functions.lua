@@ -362,6 +362,7 @@ end
 ---
 
 local function CacheItem(i, itemIDs, callback)
+    if itemIDs[i] == nil then print (itemIDs[i]) end
     local Item = Item:CreateFromItemID(itemIDs[i])
     Item:ContinueOnItemLoad(function()
         if i < #itemIDs then
@@ -391,9 +392,7 @@ function ns:CacheAndBuild(callback)
             end
             if MobFilter(mob, #items) then
                 for _, item in ipairs(items) do
-                    if ItemFilter(item) then
-                        table.insert(itemIDs, GetItemID(item))
-                    end
+                    table.insert(itemIDs, GetItemID(item))
                 end
             end
         end

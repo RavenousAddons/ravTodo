@@ -22,11 +22,13 @@ function ravTodo_OnEvent(self, event, arg, ...)
         ns:ImportData()
         ns:CreateSettingsPanel()
         ns:EnsureMacro()
-        ns:CacheAndBuild(function()
-            ns:BuildWindow()
-            if ns.waitingForWindow or not RTD_version then
-                ns:ToggleWindow(ns.Window, "Show")
-            end
+        C_Timer.After(3, function()
+            ns:CacheAndBuild(function()
+                ns:BuildWindow()
+                if ns.waitingForWindow or not RTD_version then
+                    ns:ToggleWindow(ns.Window, "Show")
+                end
+            end)
         end)
         if not ns.version:match("-") then
             if not RTD_version then
@@ -68,7 +70,7 @@ function ravTodo_OnEvent(self, event, arg, ...)
         end
     elseif event == "CHAT_MSG_CURRENCY" or event == "CURRENCY_DISPLAY_UPDATE" then
         if ns.Currencies then
-            C_Timer.After(0, function()
+            C_Timer.After(1, function()
                 ns:RefreshCurrencies()
             end)
         end
@@ -80,7 +82,7 @@ function ravTodo_OnEvent(self, event, arg, ...)
         end
     elseif event == "BOSS_KILL" or event == "ENCOUNTER_END" then
         if ns.Mobs then
-            C_Timer.After(3, function()
+            C_Timer.After(1, function()
                 ns:RefreshMobs()
             end)
         end
@@ -88,14 +90,14 @@ function ravTodo_OnEvent(self, event, arg, ...)
         local _, subtype = CombatLogGetCurrentEventInfo()
         if subtype == "UNIT_DIED" or subtype == "UNIT_DESTROYED" then
             if ns.Mobs then
-                C_Timer.After(3, function()
+                C_Timer.After(1, function()
                     ns:RefreshMobs()
                 end)
             end
         end
     elseif event == "MOUNT_JOURNAL_SEARCH_UPDATED" or event == "PET_JOURNAL_LIST_UPDATE" or event == "NEW_TOY_ADDED" then
         if ns.Items then
-            C_Timer.After(3, function()
+            C_Timer.After(1, function()
                 ns:RefreshItems()
                 ns:RefreshCounts()
             end)
