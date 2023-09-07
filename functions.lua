@@ -8,6 +8,7 @@ local CQL = C_QuestLog
 local defaults = ns.data.defaults
 local categories = ns.data.categories
 local currencies = ns.data.currencies
+local expansions = ns.data.expansions
 local notes = ns.data.notes
 
 -- Player information
@@ -459,12 +460,12 @@ end
 
 function ns:RefreshCurrencies()
     for _, Currency in ipairs(ns.Currencies) do
-        local currency = C_CurrencyInfo.GetCurrencyInfo(Currency.currency)
+        local currency = C_CurrencyInfo.GetCurrencyInfo(Currency.id)
         local quantity = currency.discovered and currency.quantity or 0
         local max = currency.useTotalEarnedForMaxQty and commaValue(currency.maxQuantity - currency.totalEarned + quantity) or commaValue(currency.maxQuantity)
         local add = Currency.add and Currency.add() or 0
 
-        Currency:SetText(TextIcon(currency.iconFileID) .. " " .. TextColor(currency.name, currency.color or "ffffff") .. "  " .. TextColor(commaValue(quantity + add) .. (currency.maxQuantity >= currency.quantity and " / " .. max or ""), "ffffff"))
+        Currency:SetText(TextIcon(currency.iconFileID) .. " " .. TextColor(currency.name, Currency.color) .. "  " .. TextColor(commaValue(quantity + add) .. (currency.maxQuantity >= currency.quantity and " / " .. max .. (currency.useTotalEarnedForMaxQty and "+" or "") or ""), "ffffff"))
     end
 end
 
@@ -479,7 +480,7 @@ function ns:RefreshMobs()
         local mob = MobLabel.mob
         local size = mob.size and mob.size or ""
         local difficulties = GetMobDifficulties(mob)
-        local difficulty = #difficulties > 0 and TextColor(" (" .. table.concat(difficulties, ", "):gsub(" Player", ""):gsub("%(Heroic%)", "Heroic"):gsub("Looking for Raid", "LFR") .. ")") or ""
+        local difficulty = #difficulties > 0 and " (" .. table.concat(difficulties, ", "):gsub(" Player", ""):gsub("%(Heroic%)", "Heroic"):gsub("Looking for Raid", "LFR") .. ")" or ""
         local dead = ""
         if #difficulties > 0 then
             for _, d in ipairs(difficulties) do
@@ -489,7 +490,7 @@ function ns:RefreshMobs()
             dead = (IsMobDead(mob) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull)
         end
         local variant = mob.variant and " (" .. mob.variant .. ")" or ""
-        local instance = TextColor(mob.raid or mob.dungeon or MobLabel.zoneName)
+        local instance = mob.raid or mob.dungeon or MobLabel.zoneName
         local drops = mob.vendor and "sells" or "drops"
         local mobClass = mob.class and "|c" .. select(4, GetClassColor(string.gsub(mob.class, "%s+", ""):upper())) .. mob.class .. "|r" or nil
         local classOnly = mob.class and TextColor(L.OnlyFor, "bbbbbb") .. mobClass or ""
@@ -497,8 +498,9 @@ function ns:RefreshMobs()
         local factionOnly = mobFaction and TextColor(L.OnlyFor, "bbbbbb") .. mobFaction or ""
         local mobControl = mob.control and "|cff" .. (mob.control == "Alliance" and "0078ff" or "b30000") .. mob.control .. "|r" or nil
         local controlRequired = mobControl and TextColor(string.format(L.ZoneControl, mobControl)) or ""
+        local sourceColor = (type(mob.source) == "string" and expansions[mob.source]) and expansions[mob.source].color or "ffffff"
 
-        MobLabel:SetText(dead .. " " .. TextColor(MobLabel.i .. ". ") .. mob.name .. variant .. TextColor(" in ", "bbbbbb") .. instance .. difficulty .. controlRequired .. factionOnly .. classOnly .. " " .. TextColor(drops .. ":", "bbbbbb"))
+        MobLabel:SetText(dead .. " " .. TextColor(MobLabel.i .. ". ") .. mob.name .. variant .. TextColor(" in ", "bbbbbb") .. TextColor(instance .. difficulty, sourceColor) .. controlRequired .. factionOnly .. classOnly .. " " .. TextColor(drops .. ":", "bbbbbb"))
     end
 end
 
@@ -675,13 +677,40 @@ function ns:CreatePVP(Parent, Relative)
     ns:RefreshWarmode()
 
     for _, currency in ipairs({"Honor", "Conquest", "Bloody Tokens", "Bloody Coin"}) do
-        local Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-        Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
-        Currency:SetJustifyH("LEFT")
-        Currency.currency = currencies[currency]
-        Register("Currencies", Currency)
+        local c = currencies[currency]
+        local CurrencyLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        CurrencyLabel:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
+        CurrencyLabel:SetJustifyH("LEFT")
+        CurrencyLabel.id = c.id
+        CurrencyLabel.color = c.color and c.color or c.source and expansions[c.source].color or "ffffff"
+        if c.zoneID and c.coordinates then
+            local zoneID = type(c.zoneID) == "table" and c.zoneID[factionName] or c.zoneID
+            local coordinates = type(c.coordinates) == "table" and c.coordinates[factionName] or c.coordinates
+            local zoneName = C_Map.GetMapInfo(zoneID).name
+            local cc = {}
+            for d in tostring(coordinates):gmatch("[0-9][0-9]") do
+                table.insert(cc, d)
+            end
+            Currency = CreateFrame("Button", ADDON_NAME .. "Currency" .. c.id, Parent)
+            Currency:SetAllPoints(CurrencyLabel)
+            Currency:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self or UIParent, "ANCHOR_RIGHT")
+                GameTooltip:SetText(TextColor(zoneName))
+                GameTooltip:AddLine(cc[1] .. "." .. cc[2] .. ", " .. cc[3] .. "." .. cc[4])
+                if c.note then
+                    GameTooltip:AddLine(TextColor(c.note, "ffffff"))
+                end
+                GameTooltip:Show()
+            end)
+            Currency:SetScript("OnClick", function()
+                ns:SetWaypoint(zoneID, coordinates)
+            end)
+            Currency:SetScript("OnLeave", HideTooltip)
+            CurrencyLabel.anchor = Currency
+        end
+        Register("Currencies", CurrencyLabel)
         Relative.offset = Relative.offset + large
-        LittleRelative = Currency
+        LittleRelative = CurrencyLabel
     end
 
     return Relative
@@ -724,29 +753,25 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
         Mob:SetAllPoints(MobLabel)
         Mob:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self or UIParent, "ANCHOR_RIGHT", 0, 0)
-            GameTooltip:SetText(TextColor(L.CreateMapPin .. ":"))
-            GameTooltip:AddLine(mob.name .. (IsMobDead(mob) and TextColor(" (" .. _G.DUNGEON_ENCOUNTER_DEFEATED .. ")", "ff0000") or ""))
+            GameTooltip:SetText(mob.name .. (IsMobDead(mob) and TextColor(" (" .. _G.DUNGEON_ENCOUNTER_DEFEATED .. ")", "ff0000") or ""))
             if mob.raid or mob.dungeon then
                 GameTooltip:AddLine(TextColor(mob.raid or mob.dungeon))
             end
             GameTooltip:AddLine(TextColor(zoneName) .. " " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4])
-            if mob.biweekly then
-                GameTooltip:AddLine("Bi-weekly")
-            elseif mob.weekly then
-                GameTooltip:AddLine("Weekly")
-            elseif mob.fortnightly then
-                GameTooltip:AddLine("Fortnightly")
-            elseif mob.achievement then
+            if mob.achievement then
                 GameTooltip:AddLine("Achievement-based")
             end
             GameTooltip:Show()
         end)
         Mob:SetScript("OnLeave", HideTooltip)
         Mob:SetScript("OnClick", function()
-            if RTD_options.share and (IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown()) then
+            if IsShiftKeyDown() and RTD_options.share then
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon), true)
-            else
+            elseif IsControlKeyDown() then
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon))
+            elseif mob.instance and mob.encounter then
+                EJ_SelectInstance(mob.instance)
+                EJ_SelectEncounter(mob.encounter)
             end
         end)
         MobLabel.anchor = Mob
@@ -790,10 +815,10 @@ function ns:CreateItem(Parent, Relative, item)
     Item:SetScript("OnLeave", HideTooltip)
     Item:SetScript("OnClick", function()
         if IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown() then
-            DressUpLink(itemLink)
-        else
             -- TODO refactor to open Journal instead of just printing
             ns:PrettyPrint(itemLink)
+        else
+            DressUpLink(itemLink)
         end
     end)
     ItemLabel.anchor = Item
@@ -978,7 +1003,7 @@ function ns:BuildWindow()
 
     -- Link Tabs and Scrollers
     for title, Tab in pairs(Tabs) do
-        Tab:SetScript("OnClick", function(self)
+        Tab:SetScript("OnClick", function()
             PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
             for lookup, Scroller in pairs(Scrollers) do
                 if title == lookup then
@@ -1008,22 +1033,20 @@ function ns:BuildWindow()
     Relative = MountCount
     ns.MountCount = MountCount
 
+    local PetCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    PetCount:SetJustifyH("LEFT")
+    PetCount:SetPoint("TOPLEFT", Relative, "TOPLEFT", Parent:GetWidth() / 2, 0)
+    ns.PetCount = PetCount
+
     local TotalMountCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     TotalMountCount:SetJustifyH("LEFT")
     TotalMountCount:SetPoint("TOPLEFT", Relative, "TOPLEFT", 0, -gigantic)
     Relative = TotalMountCount
     ns.TotalMountCount = TotalMountCount
 
-    local PetCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    PetCount:SetJustifyH("LEFT")
-    PetCount:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -medium)
-    Relative = PetCount
-    ns.PetCount = PetCount
-
     local TotalPetCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     TotalPetCount:SetJustifyH("LEFT")
-    TotalPetCount:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -medium)
-    Relative = TotalPetCount
+    TotalPetCount:SetPoint("TOPLEFT", Relative, "TOPLEFT", Parent:GetWidth() / 2, 0)
     ns.TotalPetCount = TotalPetCount
 
     local ToyCount = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
@@ -1041,29 +1064,81 @@ function ns:BuildWindow()
     local PVP = ns:CreatePVP(Parent, Relative)
     Relative = PVP
 
-    -- Currencies
-    local Currencies = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-    Currencies:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -gigantic-medium-(Relative.offset or 0))
-    Currencies:SetJustifyH("LEFT")
-    Currencies:SetText(icons.Vendor .. "  " .. TextColor("Currencies"))
-    Relative = Currencies
-    Relative.offset = medium
-    LittleRelative = Currencies
+    -- Bonus Rolls by Expansion
+    local BonusRolls = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    BonusRolls:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -gigantic-medium-(Relative.offset or 0))
+    BonusRolls:SetJustifyH("LEFT")
+    BonusRolls:SetText(icons.Raid .. "  " .. TextColor("Bonus Rolls"))
+    Relative = BonusRolls
+    Relative.offset = gigantic + medium
+    LittleRelative = BonusRolls
 
-    local Currency
-    for i, currency in ipairs({"Seal of Wartorn Fate", "Paracausal Flakes", "Darkmoon Prize Ticket", "Tol Barad Commendation"}) do
-        Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    local Currency, CurrencyLabel
+    for i, currency in ipairs({"Elder Charm of Good Fortune", "Mogu Rune of Fate", "Warforged Seal", "Seal of Tempered Fate", "Seal of Inevitable Fate", "Seal of Broken Fate", "Seal of Wartorn Fate"}) do
+        local c = currencies[currency]
+        CurrencyLabel = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         if i > 1 then
-            Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
+            CurrencyLabel:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
         else
-            Currency:SetPoint("LEFT", LittleRelative, "RIGHT", gigantic, 0)
+            CurrencyLabel:SetPoint("LEFT", LittleRelative, "RIGHT", gigantic, 0)
         end
-        Currency:SetJustifyH("LEFT")
-        Currency.currency = currencies[currency]
-        Register("Currencies", Currency)
+        CurrencyLabel:SetJustifyH("LEFT")
+        CurrencyLabel.id = c.id
+        CurrencyLabel.color = c.color and c.color or c.source and expansions[c.source].color or "ffffff"
+        Register("Currencies", CurrencyLabel)
+        if c.zoneID and c.coordinates then
+            local zoneID = type(c.zoneID) == "table" and c.zoneID[factionName] or c.zoneID
+            local coordinates = type(c.coordinates) == "table" and c.coordinates[factionName] or c.coordinates
+            local zoneName = C_Map.GetMapInfo(zoneID).name
+            local cc = {}
+            for d in tostring(coordinates):gmatch("[0-9][0-9]") do
+                table.insert(cc, d)
+            end
+            Currency = CreateFrame("Button", ADDON_NAME .. "Currency" .. c.id, Parent)
+            Currency:SetAllPoints(CurrencyLabel)
+            Currency:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self or UIParent, "ANCHOR_RIGHT")
+                GameTooltip:SetText(TextColor(zoneName))
+                GameTooltip:AddLine(cc[1] .. "." .. cc[2] .. ", " .. cc[3] .. "." .. cc[4])
+                if c.note then
+                    GameTooltip:AddLine(TextColor(c.note, "ffffff"))
+                end
+                GameTooltip:Show()
+            end)
+            Currency:SetScript("OnClick", function()
+                ns:SetWaypoint(zoneID, coordinates)
+            end)
+            Currency:SetScript("OnLeave", HideTooltip)
+            CurrencyLabel.anchor = Currency
+        end
         Relative.offset = Relative.offset + large
-        LittleRelative = Currency
+        LittleRelative = CurrencyLabel
     end
+
+    -- Other Currencies
+    -- local Currencies = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    -- Currencies:SetPoint("TOPLEFT", Relative, "BOTTOMLEFT", 0, -gigantic-medium-(Relative.offset or 0))
+    -- Currencies:SetJustifyH("LEFT")
+    -- Currencies:SetText(icons.Vendor .. "  " .. TextColor("Currencies"))
+    -- Relative = Currencies
+    -- Relative.offset = medium
+    -- LittleRelative = Currencies
+
+    -- for i, currency in ipairs({"Paracausal Flakes", "Darkmoon Prize Ticket", "Tol Barad Commendation"}) do
+    --     local c = currencies[currency]
+    --     Currency = Parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    --     if i > 1 then
+    --         Currency:SetPoint("TOPLEFT", LittleRelative, "BOTTOMLEFT", 0, -medium)
+    --     else
+    --         Currency:SetPoint("LEFT", LittleRelative, "RIGHT", gigantic, 0)
+    --     end
+    --     Currency:SetJustifyH("LEFT")
+    --     Currency.id = c.id
+    --     Currency.color = c.color
+    --     Register("Currencies", Currency)
+    --     Relative.offset = Relative.offset + large
+    --     LittleRelative = Currency
+    -- end
 
     -- Spacer
     Spacer = CreateSpacer(Parent, LittleRelative, large)

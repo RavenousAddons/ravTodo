@@ -22,7 +22,7 @@ function ravTodo_OnEvent(self, event, arg, ...)
         ns:ImportData()
         ns:CreateSettingsPanel()
         ns:EnsureMacro()
-        C_Timer.After(3, function()
+        C_Timer.After(5, function()
             ns:CacheAndBuild(function()
                 ns:BuildWindow()
                 if ns.waitingForWindow or not RTD_version then
