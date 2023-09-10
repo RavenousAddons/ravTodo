@@ -180,8 +180,8 @@ ns.data = {
         "Clicking a Mob's name will place a Map Pin on their location, and Alt/Ctrl/Shift-Clicking will share the coordinates with your group.",
         "Clicking an Item will place a link in your chat, and Alt/Ctrl/Shift-Clicking will preview the item in the Dressing Room.",
         "Notes on development:",
-        "Version 0.0.8 brings some bugfixes and addresses some incorrect data entry on my part.",
-        "I'm still working on fleshing out the Weekly/Daily data manually. My first priority is to track all mount farms and then will pick up pets and toys. Let me know if I'm missing any!",
+        "The last few versions have mainly been about fixing bugs and correcting/bettering certain pieces of data.",
+        "If you have suggestions or corrections, I'd appreciate if you could get in touch through GitHub or Curse. You can even reach out to me in game at WaldenPond#11608.",
         "Thanks for your patience as I continue development, and keep your eyes on Curseforge for updates.",
     },
     categories = {

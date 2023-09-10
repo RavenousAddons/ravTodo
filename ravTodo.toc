@@ -1,5 +1,5 @@
 ## Interface: 100107
-## Version: 0.0.13
+## Version: 0.0.14
 
 ## Name: Ravenous Todo
 ## Title: Ravenous Todo
@@ -16,7 +16,6 @@
 
 ## X-License: Public Domain
 ## X-Website: https://github.com/RavenousAddons/ravTodo
-## X-Curse-Project-ID: 827514
-## X-WoWI-ID: 26553
+## X-Curse-Project-ID: 907945
 
 ravTodo.xml
