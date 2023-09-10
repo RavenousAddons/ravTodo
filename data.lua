@@ -210,8 +210,8 @@ ns.data = {
                 [149685] = {name="Lady Jaina Proudmoore",source="BattleForAzeroth",locations={[895]={74332832}},loot={{166705,mount=1219}},raid="Battle of Dazar'alor",mythic=true,},
                 [158041] = {name="N'Zoth the Corruptor",source="BattleForAzeroth",locations={[1530]={38404481}},loot={{174872,mount=1293}},raid="Ny'alotha, the Waking City",mythic=true,},
                 -- Legion
-                [114262] = {name="Attumen the Huntsman",source="Legion",locations={[42]={47007464}},loot={{142236,mount=875}},dungeon="Return to Karazhan",mythic=true,},
-                [114895] = {name="Nightbane",source="Legion",locations={[42]={47007464}},loot={{142552,mount=883}},dungeon="Return to Karazhan",mythic=true,},
+                [114262] = {name="Attumen the Huntsman",source="Legion",locations={[42]={46737018}},loot={{142236,mount=875}},dungeon="Return to Karazhan",mythic=true,},
+                [114895] = {name="Nightbane",source="Legion",locations={[42]={46737018}},loot={{142552,mount=883}},dungeon="Return to Karazhan",mythic=true,},
                 [105503] = {name="Gul'dan",source="Legion",locations={[1191]={43725722}},loot={{137574,mount=791}},raid="The Nighthold",},
                 [105504] = {name="Gul'dan",source="Legion",locations={[1191]={43725722}},loot={{137575,mount=633}},raid="The Nighthold",mythic=true,},
                 [115767] = {name="Mistress Sassz'ine",source="Legion",locations={[1192]={63952120}},loot={{143643,mount=899}},raid="Tomb of Sargeras",},
@@ -232,7 +232,7 @@ ns.data = {
                 [55294] = {name="Ultraxion",source="Cataclysm",locations={[75]={65005000}},loot={{78919,mount=445}},raid="Dragon Soul",},
                 [56173] = {name="Madness of Deathwing",source="Cataclysm",locations={[75]={65005000}},loot={{77067,mount=442},{77069,mount=444}},raid="Dragon Soul",heroic=true,},
                 -- Wrath of the Lich King
-                [36597] = {name="The Lich King",source="Wrath",locations={[118]={54008500}},loot={{50818,mount=363,chance=1.0}},raid="Icecrown Citadel",heroic=25,instance=758,encounter=1636},
+                [36597] = {name="The Lich King",source="Wrath",locations={[118]={54008500}},loot={{50818,mount=363,chance=1.0}},raid="Icecrown Citadel",heroic=25,},
                 [33288] = {name="Yogg-Saron",source="Wrath",locations={[120]={41001600}},loot={{45693,mount=304,chance=1.0}},raid="Ulduar",},
                 [28859] = {name="Malygos",source="Wrath",locations={[114]={27582683}},loot={{43952,mount=246},{43953,mount=247}},raid="The Eye of Eternity",},
                 [28860] = {name="Sartharion",source="Wrath",locations={[115]={59985693}},loot={{43954,mount=250},{43986,mount=253},},raid="The Obsidian Sanctum",},

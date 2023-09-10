@@ -233,11 +233,7 @@ end
 
 local function ItemFilter(item)
     item = type(item) == "number" and {item} or item
-    local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(GetItemID(item))
 
-    if type(itemLink) ~= "string" then
-        return false
-    end
     if RTD_options.showCollected == false and IsItemOwned(item) then
         return false
     end
@@ -363,7 +359,6 @@ end
 ---
 
 local function CacheItem(i, itemIDs, callback)
-    if itemIDs[i] == nil then print (itemIDs[i]) end
     local Item = Item:CreateFromItemID(itemIDs[i])
     Item:ContinueOnItemLoad(function()
         if i < #itemIDs then
@@ -380,7 +375,6 @@ end
 
 function ns:CacheAndBuild(callback)
     local itemIDs = {}
-    local isBehindQuest, isAvailable
     for _, category in ipairs(categories) do
         for mobID, mob in pairs(category.mobs) do
             -- Build list of available loot from the Mob
@@ -398,7 +392,13 @@ function ns:CacheAndBuild(callback)
             end
         end
     end
-    CacheItem(1, itemIDs, callback)
+    if #itemIDs == 0 then
+        C_Timer.After(3, function()
+            ns:CacheAndBuild(callback)
+        end)
+    else
+        CacheItem(1, itemIDs, callback)
+    end
 end
 
 ---
@@ -765,13 +765,10 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
         end)
         Mob:SetScript("OnLeave", HideTooltip)
         Mob:SetScript("OnClick", function()
-            if IsShiftKeyDown() and RTD_options.share then
+            if (IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown()) and RTD_options.share then
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon), true)
-            elseif IsControlKeyDown() then
+            else
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon))
-            elseif mob.instance and mob.encounter then
-                EJ_SelectInstance(mob.instance)
-                EJ_SelectEncounter(mob.encounter)
             end
         end)
         MobLabel.anchor = Mob

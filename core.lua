@@ -22,13 +22,11 @@ function ravTodo_OnEvent(self, event, arg, ...)
         ns:ImportData()
         ns:CreateSettingsPanel()
         ns:EnsureMacro()
-        C_Timer.After(5, function()
-            ns:CacheAndBuild(function()
-                ns:BuildWindow()
-                if ns.waitingForWindow or not RTD_version then
-                    ns:ToggleWindow(ns.Window, "Show")
-                end
-            end)
+        ns:CacheAndBuild(function()
+            ns:BuildWindow()
+            if ns.waitingForWindow or not RTD_version then
+                ns:ToggleWindow(ns.Window, "Show")
+            end
         end)
         if not ns.version:match("-") then
             if not RTD_version then
