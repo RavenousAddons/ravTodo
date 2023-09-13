@@ -73,6 +73,11 @@ L.OptionsExtra = {
         tooltip = "Enables sharing of version data and waypoints with group members.",
     },
     [2] = {
+        key = "useTomTom",
+        name = "Use TomTom",
+        tooltip = "When enabled, setting waypoints will do so with TomTom instead of the native waypoint system.",
+    },
+    [3] = {
         key = "debug",
         name = "Debugging",
         tooltip = "Enables messages for debugging.",

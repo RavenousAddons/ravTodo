@@ -24,6 +24,10 @@ function ravTodo_OnEvent(self, event, arg, ...)
         ns:EnsureMacro()
         ns:CacheAndBuild(function()
             ns:BuildWindow()
+            ns:BuildLibData()
+            ns:RefreshCurrencies()
+            ns:RefreshMobs()
+            ns:RefreshItems()
             if ns.waitingForWindow or not RTD_version then
                 ns:ToggleWindow(ns.Window, "Show")
             end

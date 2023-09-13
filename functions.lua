@@ -306,7 +306,7 @@ end
 
 function ns:ImportData()
     local SilverDragonMobs = {}
-    if SilverDragon and RTD_options.useSilverDragon ~= false then
+    if SilverDragon and RTD_options.useSilverDragon then
         for expansion, datasource in pairs(SilverDragon.datasources) do
             for mobID, mob in pairs(datasource) do
                 SilverDragonMobs[mobID] = mob
@@ -407,33 +407,38 @@ end
 
 function ns:SetWaypoint(zoneID, coordinates, instanceName, share)
     -- Breakdown the waypoint into segments
-    local zoneName = C_Map.GetMapInfo(zoneID).name
     local c = {}
     for d in tostring(coordinates):gmatch("[0-9][0-9]") do
         table.insert(c, d)
     end
 
-    -- Add the waypoint to the map and track it
-    C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(zoneID, "0." .. c[1] .. c[2], "0." .. c[3] .. c[4]))
-    C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-
-    if share and (ns.data.raidMembers > 0 or ns.data.partyMembers > 0) and not IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
-        local now = GetServerTime()
-        if (RTD_data.updateTimeout and RTD_data.updateTimeout > now) then
-            ns:PrettyPrint(L.WaitToShare)
-            return
-        end
-        RTD_data.updateTimeout = now + ns.data.updateTimeout
-
-        local message = (instanceName and instanceName .. ", " or "") .. zoneName .. " @ " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. " " .. C_Map.GetUserWaypointHyperlink()
-
-        if ns.data.raidMembers > 0 then
-            SendChatMessage(message, "RAID")
-        elseif ns.data.partyMembers > 0 then
-            SendChatMessage(message, "PARTY")
-        end
+    if TomTom then
+        TomTom:AddWaypoint(zoneID, tonumber("0." .. c[1] .. c[2]), tonumber("0." .. c[3] .. c[4]), {from=ns.name,title=instanceName})
     else
-        ns:PrettyPrint(L.AddedMapPin:format("|cffffff00|Hworldmap:" .. zoneID .. ":" .. c[1] .. c[2] .. ":" .. c[3] .. c[4] .. "|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a |cffffff00" .. (instanceName and instanceName .. " - " or "") .. zoneName .. " " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. "|r]|h|r"))
+        local zoneName = C_Map.GetMapInfo(zoneID).name
+
+        -- Add the waypoint to the map and track it
+        C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(zoneID, "0." .. c[1] .. c[2], "0." .. c[3] .. c[4]))
+        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+
+        if share and (ns.data.raidMembers > 0 or ns.data.partyMembers > 0) and not IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
+            local now = GetServerTime()
+            if (RTD_data.updateTimeout and RTD_data.updateTimeout > now) then
+                ns:PrettyPrint(L.WaitToShare)
+                return
+            end
+            RTD_data.updateTimeout = now + ns.data.updateTimeout
+
+            local message = (instanceName and instanceName .. ", " or "") .. zoneName .. " @ " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. " " .. C_Map.GetUserWaypointHyperlink()
+
+            if ns.data.raidMembers > 0 then
+                SendChatMessage(message, "RAID")
+            elseif ns.data.partyMembers > 0 then
+                SendChatMessage(message, "PARTY")
+            end
+        else
+            ns:PrettyPrint(L.AddedMapPin:format("|cffffff00|Hworldmap:" .. zoneID .. ":" .. c[1] .. c[2] .. ":" .. c[3] .. c[4] .. "|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a |cffffff00" .. (instanceName and instanceName .. " - " or "") .. zoneName .. " " .. c[1] .. "." .. c[2] .. ", " .. c[3] .. "." .. c[4] .. "|r]|h|r"))
+        end
     end
 end
 
@@ -476,8 +481,16 @@ function ns:RefreshWarmode()
 end
 
 function ns:RefreshMobs()
+    local data = {
+        remaining = 0,
+        weekly = 0,
+        daily = 0,
+        worldbosses = 0,
+    }
+
     for _, MobLabel in ipairs(ns.Mobs) do
         local mob = MobLabel.mob
+        local category = MobLabel.category
         local size = mob.size and mob.size or ""
         local difficulties = GetMobDifficulties(mob)
         local difficulty = #difficulties > 0 and " (" .. table.concat(difficulties, ", "):gsub(" Player", ""):gsub("%(Heroic%)", "Heroic"):gsub("Looking for Raid", "LFR") .. ")" or ""
@@ -485,9 +498,21 @@ function ns:RefreshMobs()
         if #difficulties > 0 then
             for _, d in ipairs(difficulties) do
                 dead = dead .. (IsMobDead(mob, true, d) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull)
+                if not IsMobDead(mob, true, d) then
+                    data.remaining = data.remaining + 1
+                    if category == "Weekly" then data.weekly = data.weekly + 1 end
+                    if category == "Daily" then data.daily = data.daily + 1 end
+                    if category == "World Bosses" then data.worldbosses = data.worldbosses + 1 end
+                end
             end
         else
             dead = (IsMobDead(mob) and icons.Checkmark or (mob.biweekly or mob.weekly or mob.fortnightly) and icons.Daily or mob.vendor and icons.Vendor or mob.raid and icons.Raid or mob.dungeon and icons.Dungeon or icons.Skull)
+            if not IsMobDead(mob) then
+                data.remaining = data.remaining + 1
+                if category == "Weekly" then data.weekly = data.weekly + 1 end
+                if category == "Daily" then data.daily = data.daily + 1 end
+                if category == "World Bosses" then data.worldbosses = data.worldbosses + 1 end
+            end
         end
         local variant = mob.variant and " (" .. mob.variant .. ")" or ""
         local instance = mob.raid or mob.dungeon or MobLabel.zoneName
@@ -501,6 +526,33 @@ function ns:RefreshMobs()
         local sourceColor = (type(mob.source) == "string" and expansions[mob.source]) and expansions[mob.source].color or "ffffff"
 
         MobLabel:SetText(dead .. " " .. TextColor(MobLabel.i .. ". ") .. mob.name .. variant .. TextColor(" in ", "bbbbbb") .. TextColor(instance .. difficulty, sourceColor) .. controlRequired .. factionOnly .. classOnly .. " " .. TextColor(drops .. ":", "bbbbbb"))
+    end
+
+    ns.DataSource.text = "(" .. data.remaining .. ")"
+    ns.DataSourceOnEnter = function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", self, "BOTTOMLEFT")
+        GameTooltip:ClearLines()
+        GameTooltip:SetText(TextColor(ns.name, "ffffff"))
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine("Mobs remaining:")
+        GameTooltip:AddLine("Total  " .. TextColor(data.remaining, "ffffff"))
+        GameTooltip:AddLine("Weekly  " .. TextColor(data.weekly, "ffffff"))
+        GameTooltip:AddLine("Daily  " .. TextColor(data.daily, "ffffff"))
+        if SilverDragon and RTD_options.useSilverDragon then
+            GameTooltip:AddLine("World Bosses  " .. TextColor(data.worldbosses, "ffffff"))
+        end
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine("Items being tracked:")
+        GameTooltip:AddLine(TextColor("Collected  " .. (RTD_options.showCollected and icons.Checkmark or ""), "ffffff"))
+        GameTooltip:AddLine(TextColor("Ineligible  " .. (RTD_options.showIneligible and icons.Checkmark or ""), "ffffff"))
+        GameTooltip:AddLine(TextColor("Mounts  " .. (RTD_options.showMounts and icons.Checkmark or ""), "ffffff"))
+        GameTooltip:AddLine(TextColor("Pets  " .. (RTD_options.showPets and icons.Checkmark or ""), "ffffff"))
+        GameTooltip:AddLine(TextColor("Toys  " .. (RTD_options.showToys and icons.Checkmark or ""), "ffffff"))
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine("Left-Click:  " .. TextColor("Open Window", "ffffff"))
+        GameTooltip:AddLine("Right-Click:  " .. TextColor("Settings", "ffffff"))
+        GameTooltip:Show()
     end
 end
 
@@ -720,7 +772,7 @@ end
 -- Data Process & Print Functions
 ---
 
-function ns:CreateMob(Parent, Relative, mobID, mob)
+function ns:CreateMob(Parent, Relative, mobID, mob, categoryName)
     -- Build list of available loot from the Mob
     local items = {}
     for _, item in ipairs(mob.loot or {}) do
@@ -774,6 +826,7 @@ function ns:CreateMob(Parent, Relative, mobID, mob)
         MobLabel.anchor = Mob
         MobLabel.mob = mob
         MobLabel.zoneName = zoneName
+        MobLabel.category = categoryName
         MobLabel.i = iterMob
         Register("Mobs", MobLabel)
         Relative = Mob
@@ -1160,13 +1213,13 @@ function ns:BuildWindow()
                 Relative = ns:CreateNotes(Parent, Relative, category.notes)
             end
 
-            -- Sort & Iterate Mobs in the Category
+            -- Sort by MobID & Iterate Mobs in the Category
             mobIDs = {}
             for mobID in pairs(category.mobs) do table.insert(mobIDs, mobID) end
             table.sort(mobIDs)
             iterMob = 0
             for _, mobID in ipairs(mobIDs) do
-                Relative = ns:CreateMob(Parent, Relative, mobID, category.mobs[mobID])
+                Relative = ns:CreateMob(Parent, Relative, mobID, category.mobs[mobID], category.name)
                 Spacer = CreateSpacer(Parent, Relative)
             end
         end
@@ -1189,9 +1242,43 @@ function ns:BuildWindow()
 
     -- Spacer
     Spacer = CreateSpacer(Parent, Relative)
+end
 
-    -- Set Text and Tooltips
-    ns:RefreshCurrencies()
-    ns:RefreshMobs()
-    ns:RefreshItems()
+function ns:BuildLibData()
+    if LibStub then
+        local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
+
+        local weekly = 0
+        local daily = 0
+        local worldbosses = 0
+
+        local data = {
+            id = ADDON_NAME,
+            type = "data source",
+            version = ns.version,
+            label = ns.name,
+            notes = "Adds information about mount/pet/toy farms that can be completed.",
+            text = "(" .. #ns.Mobs .. ")",
+            icon = [[Interface\Icons\INV_Misc_PaperBundle04a]],
+            tooltipTitle = "YOOOO",
+            tooltipTextFunction = "DoThing",
+            OnClick = function(_, button)
+                if button == "RightButton" then
+                    ns:OpenSettings()
+                else
+                    ns:ToggleWindow(ns.Window)
+                end
+            end,
+            OnLeave = function()
+                HideTooltip()
+            end,
+        }
+
+        ns.DataSource = ldb:NewDataObject(ns.name, data)
+        ns.DataSourceOnEnter = function() return end
+
+        function ns.DataSource:OnEnter()
+            ns.DataSourceOnEnter(self)
+        end
+    end
 end

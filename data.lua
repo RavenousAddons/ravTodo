@@ -19,6 +19,7 @@ ns.data = {
         showPets = true,
         showToys = true,
         useSilverDragon = true,
+        useTomTom = true,
         share = true,
         debug = false,
     },

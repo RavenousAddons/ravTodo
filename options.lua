@@ -8,7 +8,6 @@ local function CreateCheckBox(category, variable, name, tooltip)
     Settings.SetOnValueChangedCallback(variable, function(event)
         RTD_options[variable] = setting:GetValue()
         ns:ToggleWindow(ns.Window, "Hide")
-        -- ns:BuildWindow()
     end)
     Settings.CreateCheckBox(category, setting, tooltip)
 end
@@ -18,7 +17,6 @@ local function CreateDropDown(category, variable, name, options, tooltip)
     Settings.SetOnValueChangedCallback(variable, function(event)
         RTD_options[variable] = setting:GetValue()
         ns:ToggleWindow(ns.Window, "Hide")
-        -- ns:BuildWindow()
     end)
     Settings.CreateDropDown(category, setting, options, tooltip)
 end
@@ -46,7 +44,9 @@ function ns:CreateSettingsPanel()
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Extra Options:"))
     for index = 1, #L.OptionsExtra do
         local option = L.OptionsExtra[index]
-        CreateCheckBox(category, option.key, option.name, option.tooltip)
+        if option.key ~= "useTomTom" or (TomTom and option.key == "useTomTom") then
+            CreateCheckBox(category, option.key, option.name, option.tooltip)
+        end
     end
 
     -- Final setup
