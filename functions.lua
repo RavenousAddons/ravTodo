@@ -86,6 +86,32 @@ local function GetMobQuests(mob)
     return {}
 end
 
+local function GetMobDifficultyIDs(mob)
+    local d = {}
+    if mob.raid then
+        if mob.mythic then
+            table.insert(d, 16)
+        elseif mob.legacy then
+            if mob.heroic == 25 then
+                table.insert(d, 6)
+            elseif mob.heroic then
+                table.insert(d, 5)
+            else
+                table.insert(d, 3)
+            end
+        else
+            if mob.heroic then
+                table.insert(d, 15)
+            elseif not mob.lfr then
+                table.insert(d, 14)
+            end
+        end
+    elseif mob.dungeon then
+        table.insert(d, mob.mythic and 23 or mob.heroic and 2 or 1)
+    end
+    return d
+end
+
 local function GetMobDifficulties(mob)
     local d = {}
     if mob.lfr then
@@ -354,6 +380,15 @@ function ns:ToggleWindow(frame, force)
     end
 end
 
+function ns:InGroup()
+    local partyMembers = GetNumSubgroupMembers()
+    local raidMembers = IsInRaid() and GetNumGroupMembers() or 0
+    if not IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and (raidMembers > 0 or partyMembers > 0) then
+        return true
+    end
+    return false
+end
+
 ---
 -- Item Cache Preloader
 ---
@@ -412,7 +447,7 @@ function ns:SetWaypoint(zoneID, coordinates, instanceName, share)
         table.insert(c, d)
     end
 
-    if TomTom then
+    if TomTom and RTD_options.useTomTom then
         TomTom:AddWaypoint(zoneID, tonumber("0." .. c[1] .. c[2]), tonumber("0." .. c[3] .. c[4]), {from=ns.name,title=instanceName})
     else
         local zoneName = C_Map.GetMapInfo(zoneID).name
@@ -813,12 +848,26 @@ function ns:CreateMob(Parent, Relative, mobID, mob, categoryName)
             if mob.achievement then
                 GameTooltip:AddLine("Achievement-based")
             end
+            GameTooltip:AddLine("|nClick: " .. TextColor("Set Waypoint"))
+            GameTooltip:AddLine("Shift-Click: " .. TextColor("Share Waypoint"))
+            if (not ns:InGroup() or (ns:InGroup() and UnitIsGroupLeader("player"))) and (mob.raid or mob.dungeon) then
+                GameTooltip:AddLine("Alt-Click: " .. TextColor("Set Difficulty"))
+            end
             GameTooltip:Show()
         end)
         Mob:SetScript("OnLeave", HideTooltip)
         Mob:SetScript("OnClick", function()
-            if (IsAltKeyDown() or IsControlKeyDown() or IsShiftKeyDown()) and RTD_options.share then
+            if IsShiftKeyDown() and RTD_options.share then
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon), true)
+            elseif IsAltKeyDown() and (not ns:InGroup() or (ns:InGroup() and UnitIsGroupLeader("player"))) then
+                local d = GetMobDifficultyIDs(mob)
+                if #d > 0 then
+                    if mob.raid then
+                        SetRaidDifficultyID(d[1])
+                    else
+                        SetDungeonDifficultyID(d[1])
+                    end
+                end
             else
                 ns:SetWaypoint(zoneID, coordinates, (mob.raid or mob.dungeon))
             end

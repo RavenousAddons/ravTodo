@@ -1,8 +1,8 @@
 ## Interface: 100107
-## Version: 0.1.0
+## Version: 0.1.1
 
 ## Name: Ravenous Todo
-## Title: Ravenous Todo
+## Title: Ravenous |cffdacda8Todo|r
 ## Notes: Keep track of mobs from dungeons, raids, and the world to farm mounts, pets, toys, etc.|n|n|cffbbbbbbSlash command: /todo|r
 ## Author: RavenousAddons
 ## AddonCompartmentFunc: ravTodo_OnAddonCompartmentClick
